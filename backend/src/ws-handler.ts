@@ -28,7 +28,10 @@ export function handleMessage(ws: WebSocket, data: ClientMessage, roomManager: R
       break;
     case 'next_round':
       handleGameAction(ws, roomManager, (_playerId, room) => {
-        room.game!.nextRound();
+        if (room.game!.state.phase === 'round_scoring') {
+          room.game!.nextRound();
+        }
+        // Silently ignore if already advanced (other player triggered it first)
       });
       break;
     case 'play_again':
