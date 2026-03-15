@@ -14,7 +14,7 @@ COPY backend/package*.json backend/
 RUN cd backend && npm ci
 COPY shared/ shared/
 COPY backend/ backend/
-RUN cd backend && npx tsc
+RUN cd backend && ./node_modules/.bin/tsc
 
 # Stage 3: Production
 FROM node:22-alpine
