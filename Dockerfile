@@ -25,4 +25,4 @@ COPY --from=frontend-build /app/frontend/dist frontend/dist
 EXPOSE 3000
 
 WORKDIR /app/backend
-CMD ["node", "--import", "tsx", "src/server.ts"]
+CMD ["npx", "tsx", "src/server.ts"]
