@@ -4,9 +4,9 @@ import fastifyStatic from '@fastify/static';
 import cors from '@fastify/cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { RoomManager } from './room-manager.js';
-import { handleMessage } from './ws-handler.js';
-import type { ClientMessage } from './protocol.js';
+import { RoomManager } from './room-manager';
+import { handleMessage } from './ws-handler';
+import type { ClientMessage } from './protocol';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
