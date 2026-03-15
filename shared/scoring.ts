@@ -1,6 +1,6 @@
-import type { PlayerBoard, RoundNumber, CardType, SpaceNumber } from './types';
-import { SPACE_NUMBERS, COLORS, ADJACENCY, ZONE_MULTIPLIER } from './constants';
-import { getFaceupCards } from './board';
+import type { PlayerBoard, RoundNumber, CardType, SpaceNumber } from './types.js';
+import { SPACE_NUMBERS, COLORS, ADJACENCY, ZONE_MULTIPLIER } from './constants.js';
+import { getFaceupCards } from './board.js';
 
 export function scoreValidated(board: PlayerBoard): number {
   let total = 0;

@@ -1,8 +1,8 @@
-import type { MatchState, CardType, SpaceNumber, RoundNumber, PickIndex, PlayerBoard } from './types';
-import { createShuffledDeck, drawCards } from './deck';
-import { createEmptyBoard, getOccupiedCount, getEmptySpaces as getBoardEmptySpaces } from './board';
-import { resolvePlacement, getPlacementCase, type PlacementChoice } from './placement';
-import { scoreRound } from './scoring';
+import type { MatchState, CardType, SpaceNumber, RoundNumber, PickIndex, PlayerBoard } from './types.js';
+import { createShuffledDeck, drawCards } from './deck.js';
+import { createEmptyBoard, getOccupiedCount, getEmptySpaces as getBoardEmptySpaces } from './board.js';
+import { resolvePlacement, getPlacementCase, type PlacementChoice } from './placement.js';
+import { scoreRound } from './scoring.js';
 
 export class GameEngine {
   state: MatchState;

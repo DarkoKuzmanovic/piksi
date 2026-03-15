@@ -1,8 +1,8 @@
 import { WebSocket } from 'ws';
-import { GameEngine } from '../../shared/game';
-import type { ClientGameState } from './protocol';
-import type { MatchState, PlayerBoard, SpaceNumber } from '../../shared/types';
-import { SPACE_NUMBERS } from '../../shared/constants';
+import { GameEngine } from '../../shared/game.js';
+import type { ClientGameState } from './protocol.js';
+import type { MatchState, PlayerBoard, SpaceNumber } from '../../shared/types.js';
+import { SPACE_NUMBERS } from '../../shared/constants.js';
 
 export interface Player {
   id: string;

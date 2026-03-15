@@ -7,22 +7,31 @@ COPY shared/ shared/
 COPY frontend/ frontend/
 RUN cd frontend && npm run build
 
-# Stage 2: Production
+# Stage 2: Build backend (compile TS to JS)
+FROM node:22-alpine AS backend-build
+WORKDIR /app
+COPY backend/package*.json backend/
+RUN cd backend && npm ci
+COPY shared/ shared/
+COPY backend/ backend/
+RUN cd backend && npx tsc
+
+# Stage 3: Production
 FROM node:22-alpine
 WORKDIR /app
 
-# Install backend deps
+# Install backend production deps only
 COPY backend/package*.json backend/
 RUN cd backend && npm ci --omit=dev
 
-# Copy backend source + shared source (tsx runs TS directly)
-COPY shared/ shared/
-COPY backend/ backend/
+# Copy compiled backend (includes shared/ in dist)
+COPY --from=backend-build /app/backend/dist backend/dist
 
 # Copy built frontend
 COPY --from=frontend-build /app/frontend/dist frontend/dist
 
+ENV FRONTEND_DIST=/app/frontend/dist
 EXPOSE 3000
 
 WORKDIR /app/backend
-CMD ["npx", "tsx", "src/server.ts"]
+CMD ["node", "dist/backend/src/server.js"]

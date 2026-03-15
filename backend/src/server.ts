@@ -4,9 +4,9 @@ import fastifyStatic from '@fastify/static';
 import cors from '@fastify/cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { RoomManager } from './room-manager';
-import { handleMessage } from './ws-handler';
-import type { ClientMessage } from './protocol';
+import { RoomManager } from './room-manager.js';
+import { handleMessage } from './ws-handler.js';
+import type { ClientMessage } from './protocol.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -16,8 +16,9 @@ const roomManager = new RoomManager();
 await server.register(cors);
 await server.register(websocket);
 
-// Serve frontend static files (warns if frontend/dist doesn't exist yet)
-const frontendDist = path.join(__dirname, '../../frontend/dist');
+// Serve frontend static files
+// In Docker: /app/frontend/dist. In dev: ../frontend/dist relative to backend/
+const frontendDist = process.env.FRONTEND_DIST || path.join(__dirname, '../../frontend/dist');
 await server.register(fastifyStatic, {
   root: frontendDist,
   prefix: '/',
@@ -26,7 +27,7 @@ await server.register(fastifyStatic, {
 
 // WebSocket endpoint
 server.get('/ws', { websocket: true }, (socket, _req) => {
-  socket.on('message', (raw) => {
+  socket.on('message', (raw: Buffer) => {
     try {
       const message: ClientMessage = JSON.parse(raw.toString());
       handleMessage(socket, message, roomManager);

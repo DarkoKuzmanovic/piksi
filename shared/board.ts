@@ -1,5 +1,5 @@
-import type { PlayerBoard, Space, SpaceNumber, CardType } from './types';
-import { SPACE_NUMBERS } from './constants';
+import type { PlayerBoard, Space, SpaceNumber, CardType } from './types.js';
+import { SPACE_NUMBERS } from './constants.js';
 
 export function createEmptyBoard(): PlayerBoard {
   const board = {} as PlayerBoard;

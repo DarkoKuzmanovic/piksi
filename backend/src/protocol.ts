@@ -1,4 +1,4 @@
-import type { SpaceNumber, CardType, PlayerBoard, RoundNumber, GamePhase } from '../../shared/types';
+import type { SpaceNumber, CardType, PlayerBoard, RoundNumber, GamePhase } from '../../shared/types.js';
 
 // Client -> Server messages
 export type ClientMessage =

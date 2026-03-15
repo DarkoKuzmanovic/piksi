@@ -1,4 +1,4 @@
-import type { CardType, SpaceNumber, Color } from './types';
+import type { CardType, SpaceNumber, Color } from './types.js';
 
 export const DECK: readonly CardType[] = [
   // --- Multicolor (6 cards) ---

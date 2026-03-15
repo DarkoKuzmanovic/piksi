@@ -1,5 +1,5 @@
-import type { PlayerBoard, CardType, SpaceNumber } from './types';
-import { getEmptySpaces } from './board';
+import type { PlayerBoard, CardType, SpaceNumber } from './types.js';
+import { getEmptySpaces } from './board.js';
 
 export type PlacementChoice =
   | { type: 'choose_keep'; keepNew: boolean }

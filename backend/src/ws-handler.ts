@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
-import type { ClientMessage } from './protocol';
-import type { RoomManager } from './room-manager';
-import type { SpaceNumber } from '../../shared/types';
+import type { ClientMessage } from './protocol.js';
+import type { RoomManager } from './room-manager.js';
+import type { SpaceNumber } from '../../shared/types.js';
 
 export function handleMessage(ws: WebSocket, data: ClientMessage, roomManager: RoomManager): void {
   switch (data.type) {

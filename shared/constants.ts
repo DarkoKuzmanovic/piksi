@@ -1,4 +1,4 @@
-import type { Color, SpaceNumber } from './types';
+import type { Color, SpaceNumber } from './types.js';
 
 export type { Color, SpaceNumber };
 
