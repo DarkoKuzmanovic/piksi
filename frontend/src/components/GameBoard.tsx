@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/game-store';
 import type { SpaceNumber } from '../store/game-store';
+import { usePrevious } from '../hooks/use-previous';
 import { PlayerGrid } from './PlayerGrid';
 import { Display } from './Display';
 import { ChooseKeepModal } from './ChooseKeepModal';
@@ -31,6 +33,17 @@ export function GameBoard() {
 
   const myTurn = isMyTurn();
   const phase = gameState.phase;
+
+  // Turn-change flash
+  const [turnFlash, setTurnFlash] = useState(false);
+  const prevMyTurn = usePrevious(myTurn);
+  useEffect(() => {
+    if (prevMyTurn === false && myTurn === true) {
+      setTurnFlash(true);
+      const timer = setTimeout(() => setTurnFlash(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [myTurn, prevMyTurn]);
 
   // Determine which spaces to highlight (Case 3: choose_space)
   const highlightSpaces: SpaceNumber[] = [];
@@ -96,9 +109,10 @@ export function GameBoard() {
             ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)]'
             : 'bg-[var(--color-bg-surface)]/30 text-[var(--color-text-muted)] animate-waiting'
           }
+          ${turnFlash ? 'animate-turn-flash' : ''}
         `}
       >
-        <div>{statusText}</div>
+        <div key={statusText} className="animate-fade-in">{statusText}</div>
         <div className="text-xs text-[var(--color-text-muted)] font-normal mt-0.5">
           Round {gameState.roundNumber} &middot; Turn {gameState.turnNumber}
           {gameState.lastTurnTriggered && ' \u2014 LAST TURN'}
