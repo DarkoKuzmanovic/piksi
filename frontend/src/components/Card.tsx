@@ -15,9 +15,11 @@ interface CardProps {
   small?: boolean;
   spaceNumber?: SpaceNumber;
   highlighted?: boolean;
+  flipping?: boolean;
+  placing?: boolean;
 }
 
-export function Card({ card, facedown, selected, onClick, small, spaceNumber, highlighted }: CardProps) {
+export function Card({ card, facedown, selected, onClick, small, spaceNumber, highlighted, flipping, placing }: CardProps) {
   const baseSize = small ? 'w-[4.5rem] h-[5.5rem]' : 'w-[5.5rem] h-[7rem]';
   const baseFontSize = small ? 'text-xl' : 'text-3xl';
   const smallFontSize = small ? 'text-[10px]' : 'text-xs';
@@ -57,6 +59,7 @@ export function Card({ card, facedown, selected, onClick, small, spaceNumber, hi
           border-2 border-[var(--color-bg-surface)]
           flex items-center justify-center
           transition-all duration-200
+          ${placing ? 'animate-card-place' : ''}
         `}
       >
         <span className={`${small ? 'text-lg' : 'text-2xl'} opacity-30`}>?</span>
@@ -72,7 +75,7 @@ export function Card({ card, facedown, selected, onClick, small, spaceNumber, hi
     ? 'border-2 border-multicolor'
     : 'border-2';
 
-  return (
+  const faceupContent = (
     <button
       onClick={onClick}
       disabled={!onClick}
@@ -129,4 +132,30 @@ export function Card({ card, facedown, selected, onClick, small, spaceNumber, hi
       </div>
     </button>
   );
+
+  // Wrap in 3D flip container when flipping
+  if (flipping) {
+    return (
+      <div className={`card-flip-container ${baseSize}`}>
+        <div className="card-flip-inner flipped">
+          {/* Front face: card-back pattern (facedown appearance) */}
+          <div
+            className={`
+              card-flip-front ${baseSize} rounded-lg card-back-pattern
+              border-2 border-[var(--color-bg-surface)]
+              flex items-center justify-center
+            `}
+          >
+            <span className={`${small ? 'text-lg' : 'text-2xl'} opacity-30`}>?</span>
+          </div>
+          {/* Back face: actual faceup card content */}
+          <div className="card-flip-back">
+            {faceupContent}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return faceupContent;
 }

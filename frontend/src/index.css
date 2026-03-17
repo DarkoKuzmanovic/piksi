@@ -131,3 +131,67 @@ body {
 .border-multicolor {
   border-image: linear-gradient(135deg, #3B82F6, #22C55E, #EAB308, #EF4444) 1;
 }
+
+/* 3D Card Flip */
+.card-flip-container {
+  perspective: 800px;
+}
+
+.card-flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease-out;
+}
+
+.card-flip-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-flip-front,
+.card-flip-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.card-flip-front {
+  position: relative;
+}
+
+.card-flip-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+/* Card placement scale-in */
+@keyframes card-place {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-card-place {
+  animation: card-place 0.3s ease-out forwards;
+}
+
+/* Status bar flash when it becomes your turn */
+@keyframes turn-flash {
+  0% { filter: brightness(1); }
+  30% { filter: brightness(1.8); }
+  100% { filter: brightness(1); }
+}
+
+.animate-turn-flash {
+  animation: turn-flash 0.4s ease-out;
+}
+
+/* Staggered card entrance */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(12px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-card-enter {
+  animation: card-enter 0.3s ease-out forwards;
+  opacity: 0;
+}
