@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../store/game-store';
 import type { SpaceNumber } from '../store/game-store';
 import { usePrevious } from '../hooks/use-previous';
+import { useParticles } from './ParticleCanvas';
 import { PlayerGrid } from './PlayerGrid';
 import { Display } from './Display';
 import { ChooseKeepModal } from './ChooseKeepModal';
@@ -44,6 +45,19 @@ export function GameBoard() {
       return () => clearTimeout(timer);
     }
   }, [myTurn, prevMyTurn]);
+
+  // Last-turn embers
+  const particles = useParticles();
+  const statusBarRef = useRef<HTMLDivElement>(null);
+  const prevLastTurn = usePrevious(gameState?.lastTurnTriggered);
+  useEffect(() => {
+    if (!prevLastTurn && gameState?.lastTurnTriggered && statusBarRef.current) {
+      const rect = statusBarRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      particles.emit('embers', centerX, centerY);
+    }
+  }, [gameState?.lastTurnTriggered, prevLastTurn, particles]);
 
   // Determine which spaces to highlight (Case 3: choose_space)
   const highlightSpaces: SpaceNumber[] = [];
@@ -103,6 +117,7 @@ export function GameBoard() {
 
       {/* Status bar */}
       <div
+        ref={statusBarRef}
         className={`
           text-center py-2 px-4 text-sm font-bold shrink-0
           ${myTurn

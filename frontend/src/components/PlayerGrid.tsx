@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { PlayerBoard, SpaceNumber } from '../store/game-store';
 import { Card } from './Card';
 import { usePrevious } from '../hooks/use-previous';
+import { useParticles } from './ParticleCanvas';
 
 const SPACE_ORDER: SpaceNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -15,6 +16,8 @@ interface PlayerGridProps {
 
 export function PlayerGrid({ board, isOwn, small, highlightSpaces, onSpaceClick }: PlayerGridProps) {
   const gap = small ? 'gap-1' : 'gap-1.5';
+  const particles = useParticles();
+  const cardRefs = useRef<Partial<Record<SpaceNumber, HTMLDivElement | null>>>({});
 
   const prevBoard = usePrevious(board);
   const [flippingSpaces, setFlippingSpaces] = useState<Set<SpaceNumber>>(new Set());
@@ -24,6 +27,7 @@ export function PlayerGrid({ board, isOwn, small, highlightSpaces, onSpaceClick 
     if (!prevBoard) return;
     const newFlipping = new Set<SpaceNumber>();
     const newPlacing = new Set<SpaceNumber>();
+    const newValidated = new Set<SpaceNumber>();
 
     for (let i = 1; i <= 9; i++) {
       const n = i as SpaceNumber;
@@ -36,6 +40,9 @@ export function PlayerGrid({ board, isOwn, small, highlightSpaces, onSpaceClick 
       if (prev === 'EMPTY' && curr === 'FACEDOWN_ONLY') {
         newPlacing.add(n);
       }
+      if (prev !== 'VALIDATED' && curr === 'VALIDATED') {
+        newValidated.add(n);
+      }
     }
 
     if (newFlipping.size > 0) {
@@ -46,7 +53,16 @@ export function PlayerGrid({ board, isOwn, small, highlightSpaces, onSpaceClick 
       setPlacingSpaces(newPlacing);
       setTimeout(() => setPlacingSpaces(new Set()), 350);
     }
-  }, [board, prevBoard]);
+    for (const n of newValidated) {
+      const el = cardRefs.current[n];
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        particles.emit('sparkle', centerX, centerY);
+      }
+    }
+  }, [board, prevBoard, particles]);
 
   return (
     <div className={`grid grid-cols-3 ${gap} justify-items-center`}>
@@ -81,7 +97,7 @@ export function PlayerGrid({ board, isOwn, small, highlightSpaces, onSpaceClick 
 
           case 'FACEUP_ONLY':
             return (
-              <div key={spaceNum} className="relative">
+              <div key={spaceNum} ref={(el) => { cardRefs.current[spaceNum] = el; }} className="relative">
                 <Card
                   card={space.topCard}
                   small={small}
@@ -92,7 +108,7 @@ export function PlayerGrid({ board, isOwn, small, highlightSpaces, onSpaceClick 
 
           case 'VALIDATED':
             return (
-              <div key={spaceNum} className="relative">
+              <div key={spaceNum} ref={(el) => { cardRefs.current[spaceNum] = el; }} className="relative">
                 <Card
                   card={space.topCard}
                   small={small}

@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import { useGameStore } from '../store/game-store';
+import { useParticles } from './ParticleCanvas';
 
 export function GameOver() {
   const { gameState, playerId, playerNames, playAgain } = useGameStore();
+  const particles = useParticles();
 
   if (!gameState || !playerId) return null;
 
@@ -28,6 +31,12 @@ export function GameOver() {
     resultText = 'TIE!';
     resultColor = 'text-[var(--color-yellow)]';
   }
+
+  useEffect(() => {
+    if (myTotal > opTotal) {
+      particles.emit('confetti', window.innerWidth / 2, window.innerHeight / 3);
+    }
+  }, [particles, myTotal, opTotal]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6">
