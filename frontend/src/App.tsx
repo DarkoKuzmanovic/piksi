@@ -4,6 +4,7 @@ import { Lobby } from './components/Lobby';
 import { GameBoard } from './components/GameBoard';
 import { ScoreBreakdown } from './components/ScoreBreakdown';
 import { GameOver } from './components/GameOver';
+import { ParticleProvider } from './components/ParticleCanvas';
 
 export default function App() {
   const {
@@ -50,9 +51,9 @@ export default function App() {
   }
 
   return (
-    <>
+    <ParticleProvider>
       {errorToast}
       {content}
-    </>
+    </ParticleProvider>
   );
 }
