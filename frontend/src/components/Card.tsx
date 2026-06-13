@@ -1,10 +1,10 @@
 import type { CardType, SpaceNumber } from '../store/game-store';
 
 const COLOR_MAP: Record<string, string> = {
-  blue: '#3B82F6',
-  green: '#22C55E',
-  yellow: '#EAB308',
-  red: '#EF4444',
+  blue: '#6ea8ff',
+  green: '#5ce6b0',
+  yellow: '#ffcf5c',
+  red: '#ff7b9c',
 };
 
 interface CardProps {
@@ -34,7 +34,7 @@ export function Card({ card, facedown, selected, onClick, small, spaceNumber, hi
           ${baseSize} rounded-lg flex items-center justify-center
           transition-all duration-200 relative
           ${highlighted
-            ? 'border-2 border-[var(--color-accent)] animate-pulse-border cursor-pointer hover:scale-105'
+            ? 'border-2 border-[var(--color-highlight)] animate-pulse-highlight cursor-pointer hover:scale-105'
             : 'border-2 border-dashed border-[var(--color-text-muted)]/30'
           }
           ${onClick && !highlighted ? 'cursor-pointer hover:border-[var(--color-text-muted)]/60' : ''}
@@ -62,7 +62,7 @@ export function Card({ card, facedown, selected, onClick, small, spaceNumber, hi
           ${placing ? 'animate-card-place' : ''}
         `}
       >
-        <span className={`${small ? 'text-lg' : 'text-2xl'} opacity-30`}>?</span>
+        <span className={`${small ? 'text-lg' : 'text-2xl'} opacity-30`}>✦</span>
       </div>
     );
   }
@@ -80,12 +80,12 @@ export function Card({ card, facedown, selected, onClick, small, spaceNumber, hi
       onClick={onClick}
       disabled={!onClick}
       className={`
-        ${baseSize} rounded-lg relative
+        ${baseSize} rounded-lg relative card-face-depth
         ${borderStyle}
         bg-[var(--color-bg-card)]
         flex flex-col items-center justify-between p-1.5
         transition-all duration-200
-        ${selected ? 'scale-110 shadow-lg shadow-[var(--color-accent)]/50 ring-2 ring-[var(--color-accent)]' : ''}
+        ${selected ? 'scale-110 shadow-lg shadow-[var(--color-highlight)]/50 ring-2 ring-[var(--color-highlight)]' : ''}
         ${onClick ? 'cursor-pointer hover:scale-105 active:scale-95' : 'cursor-default'}
       `}
       style={!isMulticolor ? { borderColor: primaryColor } : undefined}
@@ -104,7 +104,7 @@ export function Card({ card, facedown, selected, onClick, small, spaceNumber, hi
       {/* Card number (large center) */}
       <span
         className={`${small ? 'text-2xl' : 'text-4xl'} font-bold leading-none`}
-        style={{ color: isMulticolor ? '#e0e0e0' : primaryColor }}
+        style={{ color: isMulticolor ? 'var(--color-text)' : primaryColor }}
       >
         {card.number}
       </span>
@@ -146,7 +146,7 @@ export function Card({ card, facedown, selected, onClick, small, spaceNumber, hi
               flex items-center justify-center
             `}
           >
-            <span className={`${small ? 'text-lg' : 'text-2xl'} opacity-30`}>?</span>
+            <span className={`${small ? 'text-lg' : 'text-2xl'} opacity-30`}>✦</span>
           </div>
           {/* Back face: actual faceup card content */}
           <div className="card-flip-back">
