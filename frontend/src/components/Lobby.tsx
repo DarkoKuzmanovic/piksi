@@ -52,7 +52,7 @@ export function Lobby() {
   if (lobbyState === 'waiting' && roomCode) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <h1 className="text-5xl font-bold text-[var(--color-accent)] mb-2 tracking-wider animate-pulse-glow rounded-lg">
+        <h1 className="text-5xl font-bold wordmark mb-2 tracking-wider animate-pulse-glow rounded-lg">
           PIKSI
         </h1>
         <p className="text-[var(--color-text-muted)] mb-8 animate-slide-up opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
@@ -103,7 +103,7 @@ export function Lobby() {
           <div className="card-back-pattern w-10 h-14 rounded border border-[var(--color-accent)]/30 absolute opacity-50" />
           <div className="card-back-pattern w-10 h-14 rounded border border-[var(--color-accent)]/30 absolute rotate-[25deg] translate-x-8 opacity-40" />
         </div>
-        <h1 className="text-6xl font-bold text-[var(--color-accent)] tracking-wider animate-pulse-glow rounded-lg px-4 py-2">
+        <h1 className="text-6xl font-bold wordmark tracking-wider animate-pulse-glow rounded-lg px-4 py-2">
           PIKSI
         </h1>
       </div>
