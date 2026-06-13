@@ -1,5 +1,6 @@
 import type { CardType, SpaceNumber } from '../store/game-store';
 
+// Keep these in sync with the --color-blue/green/yellow/red tokens in index.css.
 const COLOR_MAP: Record<string, string> = {
   blue: '#6ea8ff',
   green: '#5ce6b0',
