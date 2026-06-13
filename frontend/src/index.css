@@ -195,3 +195,17 @@ body {
   animation: card-enter 0.3s ease-out forwards;
   opacity: 0;
 }
+
+/* Lobby waiting spinner */
+.lobby-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(233, 69, 96, 0.3);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: lobby-spin 0.8s linear infinite;
+}
+
+@keyframes lobby-spin {
+  to { transform: rotate(360deg); }
+}
