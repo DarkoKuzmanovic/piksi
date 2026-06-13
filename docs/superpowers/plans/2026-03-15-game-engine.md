@@ -51,7 +51,7 @@ Each file has one responsibility. Tests mirror the source structure in `tests/sh
 - [ ] **Step 1: Initialize git repo and create package.json**
 
 ```bash
-cd /home/developer/Desktop/piksi
+cd /home/developer/source/piksi
 git init
 ```
 

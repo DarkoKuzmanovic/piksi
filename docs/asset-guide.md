@@ -407,6 +407,7 @@ frontend/public/assets/
 ## Notes for Designers & Developers
 
 ### Pixel-Art Guidelines
+- Horizontal bar with pixelated ornaments at center
 - Maintain consistent pixel density (1–2px line weight recommended for 64×64 base size)
 - Align to grid when possible—avoid anti-aliasing
 - Use a limited color palette per asset (3–6 colors max for readability)
