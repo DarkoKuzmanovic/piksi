@@ -35,9 +35,9 @@ export function useParticles(): ParticleAPI {
   return ctx;
 }
 
-const CONFETTI_COLORS = ['#3B82F6', '#22C55E', '#EAB308', '#EF4444', '#e94560'];
-const SPARKLE_COLORS = ['#EAB308', '#FDE047', '#FBBF24'];
-const EMBER_COLORS = ['#EF4444', '#F97316', '#EAB308'];
+const CONFETTI_COLORS = ['#6ea8ff', '#5ce6b0', '#ffcf5c', '#ff7b9c', '#ff5ca8', '#c8a8ff'];
+const SPARKLE_COLORS = ['#ffcf5c', '#fde047', '#c8a8ff'];
+const EMBER_COLORS = ['#ff5ca8', '#c8a8ff', '#ffcf5c'];
 
 function rand(min: number, max: number): number {
   return Math.random() * (max - min) + min;
