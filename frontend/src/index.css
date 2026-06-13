@@ -2,16 +2,22 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #1a1a2e;
-  --color-bg-card: #16213e;
-  --color-bg-surface: #0f3460;
-  --color-text: #e0e0e0;
-  --color-text-muted: #8888aa;
-  --color-blue: #3B82F6;
-  --color-green: #22C55E;
-  --color-yellow: #EAB308;
-  --color-red: #EF4444;
-  --color-accent: #e94560;
+  /* Twilight Arcane palette */
+  --color-bg: #140d24;
+  --color-bg-card: #1f1640;
+  --color-bg-surface: #2c1d52;
+  --color-text: #e8e0f5;
+  --color-text-muted: #9a86c8;
+  --color-blue: #6ea8ff;
+  --color-green: #5ce6b0;
+  --color-yellow: #ffcf5c;
+  --color-red: #ff7b9c;
+  --color-accent: #ff5ca8;
+  --color-lavender: #c8a8ff;
+  --color-highlight: #e6d8ff;
+  /* RGB triplets for alpha-composited glows/patterns */
+  --color-accent-rgb: 255 92 168;
+  --color-lavender-rgb: 200 168 255;
 }
 
 * {
@@ -52,13 +58,13 @@ body {
 
 /* Animations */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 4px rgba(233, 69, 96, 0.4); }
-  50% { box-shadow: 0 0 12px rgba(233, 69, 96, 0.8); }
+  0%, 100% { box-shadow: 0 0 4px rgb(var(--color-accent-rgb) / 0.4); }
+  50% { box-shadow: 0 0 12px rgb(var(--color-accent-rgb) / 0.8); }
 }
 
 @keyframes pulse-border {
-  0%, 100% { border-color: rgba(233, 69, 96, 0.4); }
-  50% { border-color: rgba(233, 69, 96, 1); }
+  0%, 100% { border-color: rgb(var(--color-accent-rgb) / 0.4); }
+  50% { border-color: rgb(var(--color-accent-rgb) / 1); }
 }
 
 @keyframes waiting-pulse {
@@ -114,22 +120,22 @@ body {
       45deg,
       transparent,
       transparent 4px,
-      rgba(233, 69, 96, 0.15) 4px,
-      rgba(233, 69, 96, 0.15) 8px
+      rgb(var(--color-lavender-rgb) / 0.10) 4px,
+      rgb(var(--color-lavender-rgb) / 0.10) 8px
     ),
     repeating-linear-gradient(
       -45deg,
       transparent,
       transparent 4px,
-      rgba(15, 52, 96, 0.3) 4px,
-      rgba(15, 52, 96, 0.3) 8px
+      rgb(var(--color-accent-rgb) / 0.10) 4px,
+      rgb(var(--color-accent-rgb) / 0.10) 8px
     );
   background-color: var(--color-bg-card);
 }
 
 /* Multicolor gradient border */
 .border-multicolor {
-  border-image: linear-gradient(135deg, #3B82F6, #22C55E, #EAB308, #EF4444) 1;
+  border-image: linear-gradient(135deg, var(--color-blue), var(--color-green), var(--color-yellow), var(--color-red)) 1;
 }
 
 /* 3D Card Flip */
@@ -200,7 +206,7 @@ body {
 .lobby-spinner {
   width: 24px;
   height: 24px;
-  border: 3px solid rgba(233, 69, 96, 0.3);
+  border: 3px solid rgb(var(--color-accent-rgb) / 0.3);
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: lobby-spin 0.8s linear infinite;
