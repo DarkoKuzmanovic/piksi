@@ -20,8 +20,8 @@ frontend/        Vite + React + Tailwind PWA (imports shared/ for scoring displa
 
 - **Backend**: Node.js, Fastify, @fastify/websocket, tsx (runs TS directly)
 - **Frontend**: React, Zustand, Tailwind, Pixelify Sans font
-- **Deploy**: Docker Compose on `deployment-host` (`/opt/app`), with project-managed Traefik and Let's Encrypt for piksi.quz.ma
-- **DNS and TLS**: Cloudflare manages `quz.ma`. Before cutting over `piksi.quz.ma`, ensure the new Traefik origin has a publicly trusted certificate if Cloudflare uses Full (strict); Let's Encrypt HTTP-01 requires port 80 and a reachable challenge path.
+- **Deploy**: Docker Compose on `deployment-host` (`/opt/app`); the app joins `application-network` as `piksi` for the existing `application-tunnel` Cloudflare Tunnel.
+- **DNS and TLS**: Cloudflare manages `quz.ma`. Configure `piksi.quz.ma` in the tunnel dashboard to route to `http://piksi:3000`, and replace the old DNS record with the tunnel CNAME only when ready to cut over.
 - **Game rules**: See PIXIES_OFFICIAL_LLM_GUIDE.md
 
 ## Conventions
