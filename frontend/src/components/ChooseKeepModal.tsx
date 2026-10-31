@@ -1,5 +1,7 @@
-import type { CardType } from '../store/game-store';
-import { Card } from './Card';
+import { useEffect, useRef } from "react";
+import type { CardType } from "../store/game-store";
+import { Card } from "./Card";
+import { trapDialogFocus } from "./dialog-focus";
 
 interface ChooseKeepModalProps {
   existingCard: CardType;
@@ -7,55 +9,52 @@ interface ChooseKeepModalProps {
   onChoose: (keepNew: boolean) => void;
 }
 
-export function ChooseKeepModal({ existingCard, pendingCard, onChoose }: ChooseKeepModalProps) {
+export function ChooseKeepModal({
+  existingCard,
+  pendingCard,
+  onChoose,
+}: ChooseKeepModalProps) {
+  const firstButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    firstButton.current?.focus();
+  }, []);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 animate-fade-in">
-      <div className="bg-[var(--color-bg)] border-2 border-[var(--color-accent)] rounded-xl p-6 max-w-sm w-full mx-4 animate-slide-up">
-        <h2 className="text-xl font-bold text-center text-[var(--color-accent)] mb-1">
-          CHOOSE FACEUP CARD
-        </h2>
-        <p className="text-sm text-[var(--color-text-muted)] text-center mb-5">
-          Which card stays faceup? The other goes facedown.
+    <div className="modal-backdrop">
+      <section
+        className="modal-panel keep-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="keep-title"
+        aria-describedby="keep-description"
+        onKeyDown={trapDialogFocus}
+      >
+        <p className="eyebrow">A matching pixie</p>
+        <h2 id="keep-title">Choose a card to keep</h2>
+        <p id="keep-description" className="muted">
+          Your space will be validated. The other card goes face down
+          underneath.
         </p>
-
-        <div className="flex items-start justify-center gap-6">
-          {/* Existing card */}
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-xs text-[var(--color-text-muted)]">EXISTING</span>
+        <div className="keep-options">
+          <div>
+            <span className="option-label">On your board</span>
             <Card card={existingCard} />
             <button
+              ref={firstButton}
+              className="button secondary"
               onClick={() => onChoose(false)}
-              className="
-                px-4 py-2 bg-[var(--color-bg-surface)] border-2 border-[var(--color-blue)]
-                text-[var(--color-blue)] font-bold rounded-lg text-sm
-                hover:bg-[var(--color-blue)] hover:text-white
-                transition-all duration-200 active:scale-95
-                min-w-[5rem] min-h-[44px]
-              "
             >
-              KEEP
+              Keep existing
             </button>
           </div>
-
-          {/* Pending card */}
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-xs text-[var(--color-text-muted)]">NEW</span>
+          <div>
+            <span className="option-label">Just picked</span>
             <Card card={pendingCard} />
-            <button
-              onClick={() => onChoose(true)}
-              className="
-                px-4 py-2 bg-[var(--color-bg-surface)] border-2 border-[var(--color-accent)]
-                text-[var(--color-accent)] font-bold rounded-lg text-sm
-                hover:bg-[var(--color-accent)] hover:text-white
-                transition-all duration-200 active:scale-95
-                min-w-[5rem] min-h-[44px]
-              "
-            >
-              KEEP
+            <button className="button primary" onClick={() => onChoose(true)}>
+              Keep new
             </button>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

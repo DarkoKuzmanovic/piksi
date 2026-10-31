@@ -1,11 +1,16 @@
-import { create } from 'zustand';
+import { create } from "zustand";
+import type { ServerMessage } from "../../../backend/src/protocol";
 
-// Inline the types we need (don't import from backend protocol)
 type SpaceNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-type Color = 'blue' | 'green' | 'yellow' | 'red';
-type GamePhase = 'lobby' | 'choose_card' | 'choose_keep' | 'choose_space' | 'round_scoring' | 'game_over';
-type SpaceState = 'EMPTY' | 'FACEDOWN_ONLY' | 'FACEUP_ONLY' | 'VALIDATED';
-
+type Color = "blue" | "green" | "yellow" | "red";
+type GamePhase =
+  | "lobby"
+  | "choose_card"
+  | "choose_keep"
+  | "choose_space"
+  | "round_scoring"
+  | "game_over";
+type SpaceState = "EMPTY" | "FACEDOWN_ONLY" | "FACEUP_ONLY" | "VALIDATED";
 export interface CardType {
   cardTypeId: string;
   number: SpaceNumber;
@@ -15,15 +20,12 @@ export interface CardType {
   crosses: number;
   specialSpiralPerFaceupColor: Color | null;
 }
-
 export interface Space {
   state: SpaceState;
   topCard: CardType | null;
   bottomCard: CardType | null;
 }
-
 export type PlayerBoard = Record<SpaceNumber, Space>;
-
 export interface ClientGameState {
   roundNumber: 1 | 2 | 3;
   turnNumber: number;
@@ -37,329 +39,205 @@ export interface ClientGameState {
   pendingCard: CardType | null;
   lastTurnTriggered: boolean;
 }
-
-export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
-export type LobbyState = 'idle' | 'creating' | 'waiting' | 'joining' | 'ready';
-
-export { type SpaceNumber, type Color, type GamePhase, type SpaceState };
-
+export type ConnectionStatus = "disconnected" | "connecting" | "connected";
+type LobbyState = "idle" | "creating" | "waiting" | "joining" | "ready";
+export type { SpaceNumber, Color, GamePhase, SpaceState };
 interface GameStore {
-  // Connection
   ws: WebSocket | null;
   connectionStatus: ConnectionStatus;
-
-  // Lobby
   lobbyState: LobbyState;
   roomCode: string | null;
   playerId: string | null;
   playerNames: Record<string, string>;
   errorMessage: string | null;
-  _pendingOpponentName: string | null;
-
-  // Game
   gameState: ClientGameState | null;
-
-  // Computed helpers
-  isMyTurn: () => boolean;
-  myBoard: () => PlayerBoard | null;
-  opponentBoard: () => PlayerBoard | null;
-  opponentId: () => string | null;
-
-  // Actions
+  disconnectedPlayerIds: string[];
+  rematchPlayerIds: string[];
   connect: () => void;
   disconnect: () => void;
   createRoom: (playerName: string) => void;
   joinRoom: (roomCode: string, playerName: string) => void;
-  chooseCard: (cardTypeId: string) => void;
+  chooseCard: (id: string) => void;
   chooseKeep: (keepNew: boolean) => void;
-  chooseSpace: (targetSpace: SpaceNumber) => void;
+  chooseSpace: (space: SpaceNumber) => void;
   nextRound: () => void;
   playAgain: () => void;
   clearError: () => void;
 }
-
-function getWsUrl(): string {
-  const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  return `${proto}://${window.location.host}/ws`;
-}
-
+const TOKEN_KEY = "piksi-resume-token";
 export const useGameStore = create<GameStore>((set, get) => {
-  let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
-  let errorTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  function send(msg: Record<string, unknown>) {
+  let reconnectTimer: number | undefined;
+  let errorTimer: number | undefined;
+  let deliberateClose = false;
+  let pendingName = "";
+  function send(message: object) {
     const { ws, connectionStatus } = get();
-    if (ws && connectionStatus === 'connected') {
-      ws.send(JSON.stringify(msg));
-    }
+    if (ws && connectionStatus === "connected")
+      ws.send(JSON.stringify(message));
   }
-
-  function handleMessage(data: string) {
-    try {
-      const msg = JSON.parse(data);
+  function showError(message: string) {
+    window.clearTimeout(errorTimer);
+    set({ errorMessage: message });
+    errorTimer = window.setTimeout(() => set({ errorMessage: null }), 5000);
+  }
+  function connect() {
+    const current = get().ws;
+    if (
+      current &&
+      (current.readyState === WebSocket.OPEN ||
+        current.readyState === WebSocket.CONNECTING)
+    )
+      return;
+    deliberateClose = false;
+    set({ connectionStatus: "connecting" });
+    const ws = new WebSocket(
+      `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`,
+    );
+    set({ ws });
+    ws.onopen = () => {
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      if (token)
+        ws.send(JSON.stringify({ type: "resume_session", resumeToken: token }));
+      else set({ connectionStatus: "connected" });
+    };
+    ws.onmessage = (event) => {
+      let msg: ServerMessage;
+      try {
+        msg = JSON.parse(event.data as string) as ServerMessage;
+      } catch {
+        return;
+      }
       switch (msg.type) {
-        case 'room_created':
+        case "room_created":
+          sessionStorage.setItem(TOKEN_KEY, msg.resumeToken);
           set({
             roomCode: msg.roomCode,
             playerId: msg.playerId,
-            lobbyState: 'waiting',
+            playerNames: { [msg.playerId]: pendingName },
+            lobbyState: "waiting",
           });
           break;
-
-        case 'room_joined':
-          set((state) => ({
+        case "room_joined":
+          sessionStorage.setItem(TOKEN_KEY, msg.resumeToken);
+          set({
+            roomCode: msg.roomCode,
             playerId: msg.playerId,
-            playerNames: { ...state.playerNames, ...msg.playerNames },
-            lobbyState: 'ready',
+            playerNames: msg.playerNames,
+            lobbyState: "ready",
+          });
+          break;
+        case "session_resumed":
+          set({
+            roomCode: msg.roomCode,
+            playerId: msg.playerId,
+            playerNames: msg.playerNames,
+            disconnectedPlayerIds: msg.disconnectedPlayerIds,
+            rematchPlayerIds: msg.rematchPlayerIds,
+            lobbyState:
+              Object.keys(msg.playerNames).length === 2 ? "ready" : "waiting",
+            connectionStatus: "connected",
+          });
+          break;
+        case "resume_rejected":
+        case "room_abandoned":
+          sessionStorage.removeItem(TOKEN_KEY);
+          set({
+            roomCode: null,
+            playerId: null,
+            playerNames: {},
+            gameState: null,
+            lobbyState: "idle",
+            rematchPlayerIds: [],
+            disconnectedPlayerIds: [],
+            connectionStatus: "connected",
+          });
+          showError(msg.message);
+          break;
+        case "player_joined":
+          set((state) => ({
+            lobbyState: "ready",
+            playerNames: {
+              ...state.playerNames,
+              [msg.playerId]: msg.playerName,
+            },
           }));
           break;
-
-        case 'player_joined':
-          set({
-            lobbyState: 'ready',
-            _pendingOpponentName: msg.playerName as string,
-          });
+        case "rematch_status":
+          set({ rematchPlayerIds: msg.playerIds });
           break;
-
-        case 'game_started':
-          // Game is starting, we'll get game_state next
+        case "game_started":
+          set({ rematchPlayerIds: [] });
           break;
-
-        case 'game_state':
-          set((state) => {
-            const gs = msg.state as ClientGameState;
-            const updatedNames = { ...state.playerNames };
-            // If we have a pending opponent name, assign it to the other player ID
-            const pendingName = state._pendingOpponentName;
-            if (pendingName && state.playerId) {
-              const opId = gs.playerIds.find((id: string) => id !== state.playerId);
-              if (opId && !updatedNames[opId]) {
-                updatedNames[opId] = pendingName;
-              }
-            }
-            return {
-              gameState: gs,
-              playerNames: updatedNames,
-            };
-          });
+        case "game_state":
+          set({ gameState: msg.state });
           break;
-
-        case 'error':
-          set({ errorMessage: msg.message });
-          // Auto-dismiss after 3 seconds
-          if (errorTimeout) clearTimeout(errorTimeout);
-          errorTimeout = setTimeout(() => {
-            set({ errorMessage: null });
-          }, 3000);
+        case "player_connection":
+          set((state) => ({
+            disconnectedPlayerIds: msg.connected
+              ? state.disconnectedPlayerIds.filter((id) => id !== msg.playerId)
+              : [...new Set([...state.disconnectedPlayerIds, msg.playerId])],
+          }));
+          break;
+        case "error":
+          set((state) => ({
+            lobbyState:
+              state.lobbyState === "creating" || state.lobbyState === "joining"
+                ? "idle"
+                : state.lobbyState,
+          }));
+          showError(msg.message);
           break;
       }
-    } catch {
-      // Ignore malformed messages
-    }
-  }
-
-  function connectWs() {
-    const existing = get().ws;
-    if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
-      return;
-    }
-
-    set({ connectionStatus: 'connecting' });
-
-    const ws = new WebSocket(getWsUrl());
-
-    ws.onopen = () => {
-      set({ connectionStatus: 'connected', ws });
     };
-
-    ws.onmessage = (event) => {
-      handleMessage(event.data as string);
-    };
-
     ws.onclose = () => {
-      set({
-        connectionStatus: 'disconnected',
-        ws: null,
-      });
-      // Auto-reconnect after 2 seconds if we were in a game
-      const state = get();
-      if (state.roomCode) {
-        reconnectTimeout = setTimeout(() => {
-          connectWs();
-        }, 2000);
-      }
+      if (get().ws !== ws) return;
+      set({ ws: null, connectionStatus: "disconnected" });
+      if (!deliberateClose) reconnectTimer = window.setTimeout(connect, 2000);
     };
-
-    ws.onerror = () => {
-      // onclose will fire after this
-    };
-
-    set({ ws });
   }
-
   return {
-    // Initial state
     ws: null,
-    connectionStatus: 'disconnected',
-    lobbyState: 'idle',
+    connectionStatus: "disconnected",
+    lobbyState: "idle",
     roomCode: null,
     playerId: null,
     playerNames: {},
     errorMessage: null,
-    _pendingOpponentName: null,
     gameState: null,
-
-    // Computed helpers
-    isMyTurn: () => {
-      const { gameState, playerId } = get();
-      if (!gameState || !playerId) return false;
-      return gameState.activePlayerId === playerId;
-    },
-
-    myBoard: () => {
-      const { gameState, playerId } = get();
-      if (!gameState || !playerId) return null;
-      return gameState.boards[playerId] ?? null;
-    },
-
-    opponentBoard: () => {
-      const { gameState, playerId } = get();
-      if (!gameState || !playerId) return null;
-      const opId = gameState.playerIds.find(id => id !== playerId);
-      if (!opId) return null;
-      return gameState.boards[opId] ?? null;
-    },
-
-    opponentId: () => {
-      const { gameState, playerId } = get();
-      if (!gameState || !playerId) return null;
-      return gameState.playerIds.find(id => id !== playerId) ?? null;
-    },
-
-    // Actions
-    connect: () => {
-      connectWs();
-    },
-
+    disconnectedPlayerIds: [],
+    rematchPlayerIds: [],
+    connect,
     disconnect: () => {
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-        reconnectTimeout = null;
-      }
-      const { ws } = get();
-      if (ws) {
-        ws.close();
-      }
+      deliberateClose = true;
+      window.clearTimeout(reconnectTimer);
+      sessionStorage.removeItem(TOKEN_KEY);
+      get().ws?.close();
       set({
         ws: null,
-        connectionStatus: 'disconnected',
-        lobbyState: 'idle',
+        connectionStatus: "disconnected",
+        lobbyState: "idle",
         roomCode: null,
         playerId: null,
         playerNames: {},
         gameState: null,
-        errorMessage: null,
-        _pendingOpponentName: null,
+        disconnectedPlayerIds: [],
+        rematchPlayerIds: [],
       });
     },
-
-    createRoom: (playerName: string) => {
-      const state = get();
-      if (state.connectionStatus !== 'connected') {
-        connectWs();
-        // Wait for connection then send
-        const checkInterval = setInterval(() => {
-          const s = get();
-          if (s.connectionStatus === 'connected') {
-            clearInterval(checkInterval);
-            set({ lobbyState: 'creating', playerNames: { } });
-            send({ type: 'create_room', playerName });
-            // Store our own name once we get our playerId
-            const unsubscribe = useGameStore.subscribe((newState) => {
-              if (newState.playerId) {
-                set((prev) => ({
-                  playerNames: { ...prev.playerNames, [newState.playerId!]: playerName },
-                }));
-                unsubscribe();
-              }
-            });
-          }
-        }, 100);
-        return;
-      }
-      set({ lobbyState: 'creating', playerNames: {} });
-      send({ type: 'create_room', playerName });
-      // Store our own name once we get our playerId
-      const unsubscribe = useGameStore.subscribe((newState) => {
-        if (newState.playerId) {
-          set((prev) => ({
-            playerNames: { ...prev.playerNames, [newState.playerId!]: playerName },
-          }));
-          unsubscribe();
-        }
-      });
+    createRoom: (playerName) => {
+      pendingName = playerName;
+      set({ lobbyState: "creating" });
+      send({ type: "create_room", playerName });
     },
-
-    joinRoom: (roomCode: string, playerName: string) => {
-      const state = get();
-      if (state.connectionStatus !== 'connected') {
-        connectWs();
-        const checkInterval = setInterval(() => {
-          const s = get();
-          if (s.connectionStatus === 'connected') {
-            clearInterval(checkInterval);
-            set({ lobbyState: 'joining', roomCode });
-            send({ type: 'join_room', roomCode, playerName });
-            const unsubscribe = useGameStore.subscribe((newState) => {
-              if (newState.playerId) {
-                set((prev) => ({
-                  playerNames: { ...prev.playerNames, [newState.playerId!]: playerName },
-                }));
-                unsubscribe();
-              }
-            });
-          }
-        }, 100);
-        return;
-      }
-      set({ lobbyState: 'joining', roomCode });
-      send({ type: 'join_room', roomCode, playerName });
-      const unsubscribe = useGameStore.subscribe((newState) => {
-        if (newState.playerId) {
-          set((prev) => ({
-            playerNames: { ...prev.playerNames, [newState.playerId!]: playerName },
-          }));
-          unsubscribe();
-        }
-      });
+    joinRoom: (roomCode, playerName) => {
+      set({ lobbyState: "joining" });
+      send({ type: "join_room", roomCode, playerName });
     },
-
-    chooseCard: (cardTypeId: string) => {
-      send({ type: 'choose_card', cardTypeId });
-    },
-
-    chooseKeep: (keepNew: boolean) => {
-      send({ type: 'choose_keep', keepNew });
-    },
-
-    chooseSpace: (targetSpace: SpaceNumber) => {
-      send({ type: 'choose_space', targetSpace });
-    },
-
-    nextRound: () => {
-      send({ type: 'next_round' });
-    },
-
-    playAgain: () => {
-      send({ type: 'play_again' });
-      set({
-        gameState: null,
-        lobbyState: 'waiting',
-      });
-    },
-
-    clearError: () => {
-      set({ errorMessage: null });
-    },
+    chooseCard: (cardTypeId) => send({ type: "choose_card", cardTypeId }),
+    chooseKeep: (keepNew) => send({ type: "choose_keep", keepNew }),
+    chooseSpace: (targetSpace) => send({ type: "choose_space", targetSpace }),
+    nextRound: () => send({ type: "next_round" }),
+    playAgain: () => send({ type: "play_again" }),
+    clearError: () => set({ errorMessage: null }),
   };
 });

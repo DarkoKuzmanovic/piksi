@@ -1,162 +1,65 @@
-import type { CardType, SpaceNumber } from '../store/game-store';
-
-// Keep these in sync with the --color-blue/green/yellow/red tokens in index.css.
-const COLOR_MAP: Record<string, string> = {
-  blue: '#6ea8ff',
-  green: '#5ce6b0',
-  yellow: '#ffcf5c',
-  red: '#ff7b9c',
-};
+import type { CardType, SpaceNumber } from "../store/game-store";
+import { SymbolIcon } from "./SymbolIcon";
 
 interface CardProps {
   card: CardType | null;
   facedown?: boolean;
-  selected?: boolean;
   onClick?: () => void;
-  small?: boolean;
   spaceNumber?: SpaceNumber;
   highlighted?: boolean;
-  flipping?: boolean;
-  placing?: boolean;
 }
 
-export function Card({ card, facedown, selected, onClick, small, spaceNumber, highlighted, flipping, placing }: CardProps) {
-  const baseSize = small ? 'w-[4.5rem] h-[5.5rem]' : 'w-[5.5rem] h-[7rem]';
-  const baseFontSize = small ? 'text-xl' : 'text-3xl';
-  const smallFontSize = small ? 'text-[10px]' : 'text-xs';
-
-  // Empty space
-  if (!card && !facedown) {
-    return (
-      <button
-        onClick={onClick}
-        disabled={!onClick}
-        className={`
-          ${baseSize} rounded-lg flex items-center justify-center
-          transition-all duration-200 relative
-          ${highlighted
-            ? 'border-2 border-[var(--color-highlight)] animate-pulse-highlight cursor-pointer hover:scale-105'
-            : 'border-2 border-dashed border-[var(--color-text-muted)]/30'
-          }
-          ${onClick && !highlighted ? 'cursor-pointer hover:border-[var(--color-text-muted)]/60' : ''}
-          ${!onClick ? 'cursor-default' : ''}
-        `}
-      >
-        {spaceNumber && (
-          <span className={`${baseFontSize} text-[var(--color-text-muted)]/20 font-bold`}>
-            {spaceNumber}
-          </span>
-        )}
-      </button>
-    );
-  }
-
-  // Facedown card
-  if (facedown || !card) {
-    return (
-      <div
-        className={`
-          ${baseSize} rounded-lg card-back-pattern
-          border-2 border-[var(--color-bg-surface)]
-          flex items-center justify-center
-          transition-all duration-200
-          ${placing ? 'animate-card-place' : ''}
-        `}
-      >
-        <span className={`${small ? 'text-lg' : 'text-2xl'} opacity-30`}>✦</span>
-      </div>
-    );
-  }
-
-  // Faceup card
-  const primaryColor = card.colors[0] ? COLOR_MAP[card.colors[0]] : '#888';
-  const isMulticolor = card.multicolor;
-
-  const borderStyle = isMulticolor
-    ? 'border-2 border-multicolor'
-    : 'border-2';
-
-  const faceupContent = (
+export function Card({
+  card,
+  facedown,
+  onClick,
+  spaceNumber,
+  highlighted,
+}: CardProps) {
+  const description = card
+    ? `${card.multicolor ? "Multicolor" : card.colors.join(" and ")} ${card.number}, ${card.spirals} spirals, ${card.crosses} crosses${card.specialSpiralPerFaceupColor ? `, special spiral for ${card.specialSpiralPerFaceupColor}` : ""}`
+    : facedown
+      ? "Face-down card"
+      : `Empty space ${spaceNumber}`;
+  const content =
+    card && !facedown ? (
+      <>
+        <span className="card-number">{card.number}</span>
+        <img
+          className="card-art"
+          src={`/assets/cards/pixie-${card.number}.webp`}
+          alt=""
+          draggable={false}
+        />
+        <span className="card-symbols" aria-hidden="true">
+          {card.spirals > 0 && <span><SymbolIcon kind="spiral" />{card.spirals}</span>}
+          {card.crosses > 0 && <span><SymbolIcon kind="cross" />{card.crosses}</span>}
+          {card.specialSpiralPerFaceupColor && (
+            <span className={`special-${card.specialSpiralPerFaceupColor}`}>
+              <SymbolIcon kind="special" />
+            </span>
+          )}
+        </span>
+        <span className="card-suit" aria-hidden="true">
+          {card.multicolor ? "ALL" : card.colors[0]}
+        </span>
+      </>
+    ) : !facedown ? (
+      <span className="empty-number">{spaceNumber}</span>
+    ) : null;
+  const classes = `card ${card && !facedown ? `card-face suit-${card.multicolor ? "multi" : card.colors[0]}` : facedown ? "card-back" : "card-empty"} ${highlighted ? "card-highlight" : ""} ${onClick ? "card-action" : ""}`;
+  return onClick ? (
     <button
+      type="button"
+      className={classes}
       onClick={onClick}
-      disabled={!onClick}
-      className={`
-        ${baseSize} rounded-lg relative card-face-depth
-        ${borderStyle}
-        bg-[var(--color-bg-card)]
-        flex flex-col items-center justify-between p-1.5
-        transition-all duration-200
-        ${selected ? 'scale-110 shadow-lg shadow-[var(--color-highlight)]/50 ring-2 ring-[var(--color-highlight)]' : ''}
-        ${onClick ? 'cursor-pointer hover:scale-105 active:scale-95' : 'cursor-default'}
-      `}
-      style={!isMulticolor ? { borderColor: primaryColor } : undefined}
+      aria-label={description}
     >
-      {/* Color dots row */}
-      <div className="flex gap-0.5 justify-center w-full">
-        {card.colors.map((color, i) => (
-          <div
-            key={i}
-            className="w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: COLOR_MAP[color] }}
-          />
-        ))}
-      </div>
-
-      {/* Card number (large center) */}
-      <span
-        className={`${small ? 'text-2xl' : 'text-4xl'} font-bold leading-none`}
-        style={{ color: isMulticolor ? 'var(--color-text)' : primaryColor }}
-      >
-        {card.number}
-      </span>
-
-      {/* Symbols row */}
-      <div className={`flex items-center gap-1 ${smallFontSize}`}>
-        {card.spirals > 0 && (
-          <span className="text-[var(--color-green)]">
-            {'S'.repeat(card.spirals)}
-          </span>
-        )}
-        {card.crosses > 0 && (
-          <span className="text-[var(--color-red)]">
-            {'X'.repeat(card.crosses)}
-          </span>
-        )}
-        {card.specialSpiralPerFaceupColor && (
-          <span
-            className="text-[9px] font-bold"
-            style={{ color: COLOR_MAP[card.specialSpiralPerFaceupColor] }}
-          >
-            +S/{card.specialSpiralPerFaceupColor[0].toUpperCase()}
-          </span>
-        )}
-      </div>
+      {content}
     </button>
+  ) : (
+    <div className={classes} role="img" aria-label={description}>
+      {content}
+    </div>
   );
-
-  // Wrap in 3D flip container when flipping
-  if (flipping) {
-    return (
-      <div className={`card-flip-container ${baseSize}`}>
-        <div className="card-flip-inner flipped">
-          {/* Front face: card-back pattern (facedown appearance) */}
-          <div
-            className={`
-              card-flip-front ${baseSize} rounded-lg card-back-pattern
-              border-2 border-[var(--color-bg-surface)]
-              flex items-center justify-center
-            `}
-          >
-            <span className={`${small ? 'text-lg' : 'text-2xl'} opacity-30`}>✦</span>
-          </div>
-          {/* Back face: actual faceup card content */}
-          <div className="card-flip-back">
-            {faceupContent}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return faceupContent;
 }

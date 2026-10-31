@@ -1,73 +1,17 @@
-# React + TypeScript + Vite
+# Piksi frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React, Vite and Zustand client for Piksi, a two-player online Pixies card game. The Fastify WebSocket server is authoritative; shared game logic supplies the live round score preview and final breakdown.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+From the repository root, run the backend with `cd backend && npm run dev` and the frontend with `cd frontend && npm run dev`. Vite proxies `/ws` to port 3000 by default; set `VITE_WS_TARGET` to change the WebSocket target. Run `npm run build` and `npm run lint` in `frontend`, and `npm test` at the repository root.
 
-## React Compiler
+Create a room and share its invite link or four-letter code. A session token is stored in the current tab's `sessionStorage`, allowing that seat to resume after a reload or connection loss within the server's two-minute grace period. Use a separate browser context for the other player.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+At the final score screen, each player can request a rematch. Scores stay visible until both agree; pending requests survive a reconnect during the grace period.
 
-## Expanding the ESLint configuration
+## Visual system
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The Twilight Arcane interface uses a portrait or landscape forest background, violet glass panels, storybook card illustrations and Outfit for UI copy. Pixelify Sans is used only for the wordmark and card numerals. Suit colors and the lavender state highlight are CSS tokens in `src/index.css`. Runtime artwork and icon paths are documented in `../docs/asset-guide.md`; the web app manifest is `public/manifest.webmanifest`.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+The play screen fits both boards and the shared display on small screens, with the boards side by side on desktop. The in-app rules explain placement and scoring; status, valid targets, card labels, round previews and the scoring breakdown guide play. Reduced-motion preferences suppress interface animation.

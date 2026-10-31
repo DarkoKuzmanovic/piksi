@@ -1,205 +1,134 @@
-import { useState, useEffect } from 'react';
-import { useGameStore } from '../store/game-store';
-import { useParticles } from './ParticleCanvas';
+import { useEffect, useState } from "react";
+import { useGameStore } from "../store/game-store";
 
 export function Lobby() {
   const [playerName, setPlayerName] = useState(
-    () => localStorage.getItem('piksi-player-name') || ''
+    () => localStorage.getItem("piksi-player-name") || "",
   );
-  const [roomCodeInput, setRoomCodeInput] = useState('');
+  const [roomCodeInput, setRoomCodeInput] = useState(
+    () =>
+      new URLSearchParams(window.location.search)
+        .get("room")
+        ?.toUpperCase()
+        .slice(0, 4) ?? "",
+  );
   const [copied, setCopied] = useState(false);
-  const { createRoom, joinRoom, lobbyState, roomCode, errorMessage, clearError, connectionStatus } = useGameStore();
-  const particles = useParticles();
-
-  const isConnecting = connectionStatus === 'connecting';
-
-  // Persist name to localStorage
+  const {
+    createRoom,
+    joinRoom,
+    lobbyState,
+    roomCode,
+    clearError,
+    connectionStatus,
+  } = useGameStore();
   useEffect(() => {
-    if (playerName) localStorage.setItem('piksi-player-name', playerName);
+    if (playerName) localStorage.setItem("piksi-player-name", playerName);
   }, [playerName]);
-
-  // Ambient sparkle particles
-  useEffect(() => {
-    const id = setInterval(() => {
-      const x = Math.random() * window.innerWidth;
-      const y = Math.random() * window.innerHeight;
-      particles.emit('sparkle', x, y);
-    }, 2500);
-    return () => clearInterval(id);
-  }, [particles]);
-
-  function handleCreate() {
-    if (!playerName.trim()) return;
-    clearError();
-    createRoom(playerName.trim());
-  }
-
-  function handleJoin() {
-    if (!playerName.trim() || roomCodeInput.length < 4) return;
-    clearError();
-    joinRoom(roomCodeInput.toUpperCase(), playerName.trim());
-  }
-
-  function handleCopyCode() {
-    if (!roomCode) return;
-    navigator.clipboard.writeText(roomCode).then(() => {
+  const waiting = lobbyState === "waiting" && roomCode;
+  const ready = connectionStatus === "connected";
+  async function copyInvite() {
+    const link = new URL(window.location.origin + window.location.pathname);
+    link.searchParams.set("room", roomCode!);
+    try {
+      await navigator.clipboard.writeText(link.toString());
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setCopied(false);
+    }
   }
-
-  // Waiting for opponent screen
-  if (lobbyState === 'waiting' && roomCode) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <h1 className="text-5xl font-bold wordmark mb-2 tracking-wider animate-pulse-glow rounded-lg">
-          PIKSI
-        </h1>
-        <p className="text-[var(--color-text-muted)] mb-8 animate-slide-up opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
-          Waiting for opponent...
-        </p>
-
-        <div
-          onClick={handleCopyCode}
-          className="bg-[var(--color-bg-surface)] border-2 border-[var(--color-accent)] rounded-xl p-6 mb-4 text-center cursor-pointer animate-pulse-border animate-slide-up opacity-0 hover:brightness-110 transition-all"
-          style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}
-          title="Click to copy"
-        >
-          <p className="text-sm text-[var(--color-text-muted)] mb-2">ROOM CODE</p>
-          <p className="text-4xl font-bold tracking-[0.3em] text-[var(--color-accent)]">
-            {roomCode}
-          </p>
-        </div>
-
-        <button
-          onClick={handleCopyCode}
-          className="text-sm text-[var(--color-text-muted)] mb-6 hover:text-[var(--color-accent)] transition-colors animate-slide-up opacity-0"
-          style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}
-        >
-          {copied ? 'Copied!' : 'Tap to copy \u00b7 Share with your opponent'}
-        </button>
-
-        <div className="animate-waiting">
-          <div className="lobby-spinner" />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 gap-0">
-      {/* Error toast */}
-      {errorMessage && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-red)] text-white px-4 py-2 rounded-lg font-bold text-sm animate-fade-in">
-          {errorMessage}
-        </div>
-      )}
-
-      {/* Card fan + Title */}
-      <div className="relative mb-[12px] animate-slide-up opacity-0" style={{ animationDelay: '0s', animationFillMode: 'forwards' }}>
-        {/* Decorative card fan behind title */}
-        <div className="absolute inset-0 flex items-center justify-center -z-10 pointer-events-none">
-          <div className="card-back-pattern w-10 h-14 rounded border border-[var(--color-accent)]/30 absolute -rotate-[25deg] -translate-x-8 opacity-40" />
-          <div className="card-back-pattern w-10 h-14 rounded border border-[var(--color-accent)]/30 absolute opacity-50" />
-          <div className="card-back-pattern w-10 h-14 rounded border border-[var(--color-accent)]/30 absolute rotate-[25deg] translate-x-8 opacity-40" />
-        </div>
-        <h1 className="text-6xl font-bold wordmark tracking-wider animate-pulse-glow rounded-lg px-4 py-2">
-          PIKSI
-        </h1>
+    <main className="lobby-shell">
+      <div className="lobby-brand">
+        <img src="/assets/brand/logo.webp" alt="" className="brand-emblem" />
+        <h1 className="wordmark">PIKSI</h1>
+        <p>A little magic for two</p>
       </div>
-      <p className="text-[var(--color-text-muted)] text-lg animate-slide-up opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards', marginBottom: '48px' }}>
-        A game of pixies & cards
+      <section className="lobby-panel glass-panel">
+        {waiting ? (
+          <>
+            <p className="eyebrow">Your invitation is ready</p>
+            <h2>Waiting for a friend</h2>
+            <p className="muted">
+              Share your invitation link or room code. The game begins when your
+              friend joins.
+            </p>
+            <div className="room-code">
+              <span>ROOM CODE</span>
+              <strong>{roomCode}</strong>
+            </div>
+            <button className="button primary full-width" onClick={copyInvite}>
+              {copied ? "Invite link copied" : "Copy invite link"}
+            </button>
+            <p className="waiting-indicator">
+              <span className="turn-dot" /> Waiting for your friend to join
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="eyebrow">Welcome to the woodland</p>
+            <h2>Gather your pixies</h2>
+            <p className="muted">
+              Create a game or join a friend for a little friendly magic.
+            </p>
+            <label htmlFor="player-name">Your name</label>
+            <input
+              id="player-name"
+              value={playerName}
+              onChange={(event) => setPlayerName(event.target.value)}
+              maxLength={16}
+              placeholder="What should we call you?"
+              autoComplete="nickname"
+            />
+            <button
+              className="button primary full-width"
+              disabled={
+                !playerName.trim() || !ready || lobbyState === "creating"
+              }
+              onClick={() => {
+                clearError();
+                createRoom(playerName.trim());
+              }}
+            >
+              {lobbyState === "creating" ? "Creating game…" : "Create a game"}
+            </button>
+            <div className="divider">
+              <span>or join a friend</span>
+            </div>
+            <label htmlFor="room-code">Room code</label>
+            <div className="join-row">
+              <input
+                id="room-code"
+                value={roomCodeInput}
+                onChange={(event) =>
+                  setRoomCodeInput(event.target.value.toUpperCase().slice(0, 4))
+                }
+                maxLength={4}
+                placeholder="ABCD"
+                autoCapitalize="characters"
+              />
+              <button
+                className="button secondary"
+                disabled={
+                  !playerName.trim() ||
+                  roomCodeInput.length !== 4 ||
+                  !ready ||
+                  lobbyState === "joining"
+                }
+                onClick={() => {
+                  clearError();
+                  joinRoom(roomCodeInput, playerName.trim());
+                }}
+              >
+                {lobbyState === "joining" ? "Joining…" : "Join game"}
+              </button>
+            </div>
+          </>
+        )}
+      </section>
+      <p className="lobby-footer">
+        A cozy card game for two · Three rounds of magic
       </p>
-
-      {/* Name input */}
-      <input
-        type="text"
-        placeholder="Your name"
-        value={playerName}
-        onChange={(e) => setPlayerName(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-        maxLength={16}
-        className="
-          w-full max-w-xs px-4 py-3
-          bg-[var(--color-bg-card)] border-2 border-[var(--color-bg-surface)]
-          rounded-lg text-center text-lg text-[var(--color-text)]
-          placeholder:text-[var(--color-text-muted)]
-          focus:outline-none focus:border-[var(--color-accent)]
-          transition-colors duration-200
-          animate-slide-up opacity-0
-        "
-        style={{ animationDelay: '0.2s', animationFillMode: 'forwards', marginBottom: '28px' }}
-      />
-
-      {/* Create Game button */}
-      <button
-        onClick={handleCreate}
-        disabled={!playerName.trim() || lobbyState === 'creating' || isConnecting}
-        className="
-          w-full max-w-xs px-6 py-4
-          bg-[var(--color-accent)] text-white font-bold text-xl
-          border-2 border-[var(--color-accent)]
-          rounded-lg
-          hover:brightness-110 active:scale-95
-          disabled:opacity-40 disabled:cursor-not-allowed
-          transition-all duration-200
-          min-h-[56px]
-          animate-slide-up opacity-0
-        "
-        style={{ animationDelay: '0.3s', animationFillMode: 'forwards', marginBottom: '28px' }}
-      >
-        {lobbyState === 'creating' || isConnecting ? 'CONNECTING...' : 'CREATE GAME'}
-      </button>
-
-      {/* Divider */}
-      <div className="flex items-center w-full max-w-xs animate-slide-up opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards', marginBottom: '28px' }}>
-        <div className="flex-1 h-px bg-[var(--color-bg-surface)]" />
-        <span className="px-4 text-sm text-[var(--color-text-muted)]">or</span>
-        <div className="flex-1 h-px bg-[var(--color-bg-surface)]" />
-      </div>
-
-      {/* Join section */}
-      <div className="flex gap-2 w-full max-w-xs animate-slide-up opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
-        <input
-          type="text"
-          placeholder="CODE"
-          value={roomCodeInput}
-          onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase().slice(0, 4))}
-          onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
-          maxLength={4}
-          className="
-            flex-1 px-4 py-3
-            bg-[var(--color-bg-card)] border-2 border-[var(--color-bg-surface)]
-            rounded-lg text-center text-lg text-[var(--color-text)]
-            tracking-[0.2em] uppercase
-            placeholder:text-[var(--color-text-muted)] placeholder:tracking-normal
-            focus:outline-none focus:border-[var(--color-accent)]
-            transition-colors duration-200
-          "
-        />
-        <button
-          onClick={handleJoin}
-          disabled={!playerName.trim() || roomCodeInput.length < 4 || lobbyState === 'joining' || isConnecting}
-          className="
-            px-6 py-3
-            bg-[var(--color-bg-surface)] text-[var(--color-accent)] font-bold text-lg
-            border-2 border-[var(--color-accent)]
-            rounded-lg
-            hover:bg-[var(--color-accent)] hover:text-white
-            active:scale-95
-            disabled:opacity-40 disabled:cursor-not-allowed
-            transition-all duration-200
-            min-h-[52px]
-          "
-        >
-          {lobbyState === 'joining' ? '...' : 'JOIN'}
-        </button>
-      </div>
-
-      {/* Version footer */}
-      <p className="absolute bottom-4 text-xs text-[var(--color-text-muted)] opacity-50">
-        piksi.quz.ma
-      </p>
-    </div>
+    </main>
   );
 }

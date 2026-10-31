@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
-import { useGameStore } from './store/game-store';
-import { Lobby } from './components/Lobby';
-import { GameBoard } from './components/GameBoard';
-import { ScoreBreakdown } from './components/ScoreBreakdown';
-import { GameOver } from './components/GameOver';
-import { ParticleProvider } from './components/ParticleCanvas';
+import { useCallback, useEffect, useState } from "react";
+import { useGameStore } from "./store/game-store";
+import { Lobby } from "./components/Lobby";
+import { GameBoard } from "./components/GameBoard";
+import { ScoreBreakdown } from "./components/ScoreBreakdown";
+import { GameOver } from "./components/GameOver";
+import { Rules } from "./components/Rules";
 
 export default function App() {
   const {
@@ -13,47 +13,48 @@ export default function App() {
     lobbyState,
     gameState,
     errorMessage,
+    connectionStatus,
   } = useGameStore();
-
-  // Connect WebSocket on mount
+  const [showRules, setShowRules] = useState(false);
+  const closeRules = useCallback(() => setShowRules(false), []);
   useEffect(() => {
     connect();
   }, [connect]);
-
-  // Error toast (shown globally)
-  const errorToast = errorMessage ? (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-[var(--color-red)] text-white px-4 py-2 rounded-lg font-bold text-sm animate-fade-in shadow-lg">
-      {errorMessage}
-    </div>
-  ) : null;
-
-  // Route based on state
-  let content: React.ReactNode;
-
-  if (!roomCode && !gameState) {
-    // No room, no game => Lobby
-    content = <Lobby />;
-  } else if (roomCode && lobbyState === 'waiting' && !gameState) {
-    // Room created, waiting for opponent (handled inside Lobby)
-    content = <Lobby />;
-  } else if (gameState?.phase === 'game_over') {
-    content = <GameOver />;
-  } else if (gameState) {
+  let content;
+  if (!gameState || (!roomCode && lobbyState !== "ready")) content = <Lobby />;
+  else if (gameState.phase === "game_over") content = <GameOver />;
+  else
     content = (
       <>
         <GameBoard />
-        {gameState.phase === 'round_scoring' && <ScoreBreakdown />}
+        {gameState.phase === "round_scoring" && <ScoreBreakdown />}
       </>
     );
-  } else {
-    // Fallback: still in lobby/joining state
-    content = <Lobby />;
-  }
-
   return (
-    <ParticleProvider>
-      {errorToast}
+    <>
+      <div className="app-tools">
+        <span
+          className={`connection connection-${connectionStatus}`}
+          role="status"
+        >
+          <span className="connection-dot" />
+          {connectionStatus === "connected"
+            ? "Connected"
+            : connectionStatus === "connecting"
+              ? "Connecting…"
+              : "Disconnected"}
+        </span>
+        <button className="rules-button" onClick={() => setShowRules(true)}>
+          How to play
+        </button>
+      </div>
+      {errorMessage && (
+        <div className="error-toast" role="alert">
+          {errorMessage}
+        </div>
+      )}
       {content}
-    </ParticleProvider>
+      {showRules && <Rules onClose={closeRules} />}
+    </>
   );
 }
