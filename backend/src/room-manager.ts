@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
 import { randomBytes } from 'node:crypto';
 import { GameEngine } from '../../shared/game.js';
-import type { ClientGameState } from './protocol.js';
+import type { ClientGameState } from '../../shared/protocol.js';
 import type { MatchState, PlayerBoard, SpaceNumber } from '../../shared/types.js';
 import { SPACE_NUMBERS } from '../../shared/constants.js';
 

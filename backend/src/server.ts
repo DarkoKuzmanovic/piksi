@@ -6,7 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { RoomManager } from './room-manager.js';
 import { handleMessage } from './ws-handler.js';
-import type { ClientMessage } from './protocol.js';
+import type { ClientMessage } from '../../shared/protocol.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

@@ -27,7 +27,7 @@ frontend/        Vite + React + Tailwind PWA (imports shared/ for scoring displa
 
 - Game logic lives in `shared/` — both server and client import from it
 - Server is authoritative — all game actions go through GameEngine on the backend
-- WebSocket protocol defined in `backend/src/protocol.ts`
+- WebSocket protocol defined in `shared/protocol.ts` (shared by server and client)
 - Frontend uses Zustand store at `frontend/src/store/game-store.ts`
 - Tests: Vitest, run from project root with `npm test`
 - Deployment via `sync.sh` — never auto-deploy

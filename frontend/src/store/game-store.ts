@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ServerMessage } from "../../../backend/src/protocol";
+import type { ServerMessage } from "@shared/protocol";
 
 type SpaceNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 type Color = "blue" | "green" | "yellow" | "red";

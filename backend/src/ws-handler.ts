@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import type { ClientMessage } from './protocol.js';
+import type { ClientMessage } from '../../shared/protocol.js';
 import type { RoomManager } from './room-manager.js';
 import type { SpaceNumber } from '../../shared/types.js';
 
