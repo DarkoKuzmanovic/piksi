@@ -20,7 +20,8 @@ frontend/        Vite + React + Tailwind PWA (imports shared/ for scoring displa
 
 - **Backend**: Node.js, Fastify, @fastify/websocket, tsx (runs TS directly)
 - **Frontend**: React, Zustand, Tailwind, Pixelify Sans font
-- **Deploy**: Docker + Traefik on VPS (piksi.quz.ma)
+- **Deploy**: Docker Compose on `deployment-host` (`/opt/app`), with project-managed Traefik and Let's Encrypt for piksi.quz.ma
+- **DNS and TLS**: Cloudflare manages `quz.ma`. Before cutting over `piksi.quz.ma`, ensure the new Traefik origin has a publicly trusted certificate if Cloudflare uses Full (strict); Let's Encrypt HTTP-01 requires port 80 and a reachable challenge path.
 - **Game rules**: See PIXIES_OFFICIAL_LLM_GUIDE.md
 
 ## Conventions
