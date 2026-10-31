@@ -21,7 +21,7 @@ frontend/        Vite + React + Tailwind PWA (imports shared/ for scoring displa
 - **Backend**: Node.js, Fastify, @fastify/websocket, tsx (runs TS directly)
 - **Frontend**: React, Zustand, Tailwind, Pixelify Sans font
 - **Deploy**: Docker Compose on `deployment-host` (`/opt/app`); the app joins `application-network` as `piksi` for the existing `application-tunnel` Cloudflare Tunnel.
-- **DNS and TLS**: Cloudflare manages `quz.ma`. Configure `piksi.quz.ma` in the tunnel dashboard to route to `http://piksi:3000`, and replace the old DNS record with the tunnel CNAME only when ready to cut over.
+- **DNS and TLS**: Cloudflare routes `piksi.quz.ma` through the `application-tunnel` tunnel to `http://piksi:3000`; its proxied CNAME points to `tunnel.example.com`.
 - **Game rules**: See PIXIES_OFFICIAL_LLM_GUIDE.md
 
 ## Conventions
