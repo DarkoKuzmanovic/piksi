@@ -1,4 +1,5 @@
 import { WebSocket } from 'ws';
+import { randomBytes } from 'node:crypto';
 import { GameEngine } from '../../shared/game.js';
 import type { ClientGameState } from './protocol.js';
 import type { MatchState, PlayerBoard, SpaceNumber } from '../../shared/types.js';
@@ -8,18 +9,23 @@ export interface Player {
   id: string;
   name: string;
   ws: WebSocket | null;
+  resumeToken: string;
+  disconnectedAt: number | null;
+  expiryTimer: NodeJS.Timeout | null;
 }
 
 export interface Room {
   code: string;
   players: Player[];
   game: GameEngine | null;
+  rematchRequests: Set<string>;
   lastActivity: number;
 }
 
 const ROOM_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ'; // 23 chars, no I/L/O
 const ROOM_CODE_LENGTH = 4;
 const STALE_ROOM_MS = 30 * 60 * 1000; // 30 minutes
+export const RESUME_GRACE_MS = 2 * 60 * 1000;
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
@@ -77,23 +83,25 @@ export class RoomManager {
   private rooms = new Map<string, Room>();
   private socketToRoom = new Map<WebSocket, { roomCode: string; playerId: string }>();
 
-  createRoom(playerName: string): { roomCode: string; playerId: string } {
+  createRoom(playerName: string): { roomCode: string; playerId: string; resumeToken: string } {
     const existingCodes = new Set(this.rooms.keys());
     const code = generateRoomCode(existingCodes);
     const playerId = generateId();
+    const resumeToken = randomBytes(32).toString('hex');
 
     const room: Room = {
       code,
-      players: [{ id: playerId, name: playerName, ws: null }],
+      players: [{ id: playerId, name: playerName, ws: null, resumeToken, disconnectedAt: null, expiryTimer: null }],
       game: null,
+      rematchRequests: new Set(),
       lastActivity: Date.now(),
     };
 
     this.rooms.set(code, room);
-    return { roomCode: code, playerId };
+    return { roomCode: code, playerId, resumeToken };
   }
 
-  joinRoom(roomCode: string, playerName: string): { playerId: string; playerNames: Record<string, string> } {
+  joinRoom(roomCode: string, playerName: string): { playerId: string; playerNames: Record<string, string>; resumeToken: string } {
     const room = this.rooms.get(roomCode.toUpperCase());
     if (!room) {
       throw new Error('Room not found');
@@ -103,7 +111,8 @@ export class RoomManager {
     }
 
     const playerId = generateId();
-    room.players.push({ id: playerId, name: playerName, ws: null });
+    const resumeToken = randomBytes(32).toString('hex');
+    room.players.push({ id: playerId, name: playerName, ws: null, resumeToken, disconnectedAt: null, expiryTimer: null });
     room.lastActivity = Date.now();
 
     const playerNames: Record<string, string> = {};
@@ -111,7 +120,7 @@ export class RoomManager {
       playerNames[p.id] = p.name;
     }
 
-    return { playerId, playerNames };
+    return { playerId, playerNames, resumeToken };
   }
 
   registerSocket(ws: WebSocket, roomCode: string, playerId: string): void {
@@ -121,8 +130,29 @@ export class RoomManager {
     const player = room.players.find(p => p.id === playerId);
     if (!player) return;
 
+    if (player.ws && player.ws !== ws) {
+      this.socketToRoom.delete(player.ws);
+      player.ws.close();
+    }
+    clearTimeout(player.expiryTimer ?? undefined);
+    player.expiryTimer = null;
+    player.disconnectedAt = null;
+
     player.ws = ws;
     this.socketToRoom.set(ws, { roomCode, playerId });
+  }
+
+  resumeSession(ws: WebSocket, token: string): { room: Room; player: Player } {
+    for (const room of this.rooms.values()) {
+      const player = room.players.find(p => p.resumeToken === token);
+      if (!player) continue;
+      if (player.disconnectedAt !== null && Date.now() - player.disconnectedAt >= RESUME_GRACE_MS) break;
+      this.registerSocket(ws, room.code, player.id);
+      room.lastActivity = Date.now();
+      this.sendToAll(room, { type: 'player_connection', playerId: player.id, connected: true });
+      return { room, player };
+    }
+    throw new Error('Invalid or expired resume token');
   }
 
   getRoom(roomCode: string): Room | undefined {
@@ -151,6 +181,7 @@ export class RoomManager {
     if (room.players.length !== 2) {
       throw new Error('Need exactly 2 players to reset');
     }
+    room.rematchRequests.clear();
     room.game = new GameEngine(room.players[0].id, room.players[1].id);
     room.lastActivity = Date.now();
   }
@@ -162,8 +193,21 @@ export class RoomManager {
     const room = this.rooms.get(info.roomCode);
     if (room) {
       const player = room.players.find(p => p.id === info.playerId);
-      if (player) {
+      if (player && player.ws === ws) {
         player.ws = null;
+        player.disconnectedAt = Date.now();
+        this.sendToAll(room, { type: 'player_connection', playerId: player.id, connected: false });
+        player.expiryTimer = setTimeout(() => {
+          if (player.ws || player.disconnectedAt === null) return;
+          room.rematchRequests.clear();
+          this.sendToAll(room, { type: 'room_abandoned', message: `${player.name} did not reconnect in time.` });
+          for (const participant of room.players) {
+            clearTimeout(participant.expiryTimer ?? undefined);
+            if (participant.ws) this.socketToRoom.delete(participant.ws);
+          }
+          this.rooms.delete(room.code);
+        }, RESUME_GRACE_MS);
+        player.expiryTimer.unref();
       }
       room.lastActivity = Date.now();
     }
@@ -204,6 +248,7 @@ export class RoomManager {
       if (now - room.lastActivity > STALE_ROOM_MS) {
         // Close any remaining sockets
         for (const player of room.players) {
+          clearTimeout(player.expiryTimer ?? undefined);
           if (player.ws) {
             this.socketToRoom.delete(player.ws);
             player.ws.close();

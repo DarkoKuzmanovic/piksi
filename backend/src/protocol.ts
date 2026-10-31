@@ -4,6 +4,7 @@ import type { SpaceNumber, CardType, PlayerBoard, RoundNumber, GamePhase } from 
 export type ClientMessage =
   | { type: 'create_room'; playerName: string }
   | { type: 'join_room'; roomCode: string; playerName: string }
+  | { type: 'resume_session'; resumeToken: string }
   | { type: 'choose_card'; cardTypeId: string }
   | { type: 'choose_keep'; keepNew: boolean }
   | { type: 'choose_space'; targetSpace: SpaceNumber }
@@ -12,9 +13,14 @@ export type ClientMessage =
 
 // Server -> Client messages
 export type ServerMessage =
-  | { type: 'room_created'; roomCode: string; playerId: string }
-  | { type: 'room_joined'; playerId: string; playerNames: Record<string, string> }
-  | { type: 'player_joined'; playerName: string }
+  | { type: 'room_created'; roomCode: string; playerId: string; resumeToken: string }
+  | { type: 'room_joined'; roomCode: string; playerId: string; playerNames: Record<string, string>; resumeToken: string }
+  | { type: 'session_resumed'; roomCode: string; playerId: string; playerNames: Record<string, string>; disconnectedPlayerIds: string[]; rematchPlayerIds: string[] }
+  | { type: 'resume_rejected'; message: string }
+  | { type: 'player_connection'; playerId: string; connected: boolean }
+  | { type: 'room_abandoned'; message: string }
+  | { type: 'player_joined'; playerId: string; playerName: string }
+  | { type: 'rematch_status'; playerIds: string[] }
   | { type: 'game_started' }
   | { type: 'game_state'; state: ClientGameState }
   | { type: 'error'; message: string };

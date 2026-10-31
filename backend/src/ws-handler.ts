@@ -11,6 +11,21 @@ export function handleMessage(ws: WebSocket, data: ClientMessage, roomManager: R
     case 'join_room':
       handleJoinRoom(ws, data.roomCode, data.playerName, roomManager);
       break;
+    case 'resume_session':
+      try {
+        if (typeof data.resumeToken !== 'string' || !data.resumeToken) throw new Error('Invalid or expired resume token');
+        const { room, player } = roomManager.resumeSession(ws, data.resumeToken);
+        ws.send(JSON.stringify({
+          type: 'session_resumed', roomCode: room.code, playerId: player.id,
+          playerNames: Object.fromEntries(room.players.map(p => [p.id, p.name])),
+          disconnectedPlayerIds: room.players.filter(p => !p.ws).map(p => p.id),
+          rematchPlayerIds: [...room.rematchRequests],
+        }));
+        roomManager.broadcastGameState(room);
+      } catch {
+        ws.send(JSON.stringify({ type: 'resume_rejected', message: 'Your session has expired. Start or join a new game.' }));
+      }
+      break;
     case 'choose_card':
       handleGameAction(ws, roomManager, (playerId, room) => {
         room.game!.chooseCard(playerId, data.cardTypeId);
@@ -48,13 +63,14 @@ function handleCreateRoom(ws: WebSocket, playerName: string, roomManager: RoomMa
     return;
   }
 
-  const { roomCode, playerId } = roomManager.createRoom(playerName.trim());
+  const { roomCode, playerId, resumeToken } = roomManager.createRoom(playerName.trim());
   roomManager.registerSocket(ws, roomCode, playerId);
 
   ws.send(JSON.stringify({
     type: 'room_created',
     roomCode,
     playerId,
+    resumeToken,
   }));
 }
 
@@ -69,7 +85,7 @@ function handleJoinRoom(ws: WebSocket, roomCode: string, playerName: string, roo
   }
 
   try {
-    const { playerId, playerNames } = roomManager.joinRoom(roomCode.trim(), playerName.trim());
+    const { playerId, playerNames, resumeToken } = roomManager.joinRoom(roomCode.trim(), playerName.trim());
     const room = roomManager.getRoom(roomCode.trim().toUpperCase())!;
 
     roomManager.registerSocket(ws, room.code, playerId);
@@ -78,6 +94,8 @@ function handleJoinRoom(ws: WebSocket, roomCode: string, playerName: string, roo
     ws.send(JSON.stringify({
       type: 'room_joined',
       playerId,
+      roomCode: room.code,
+      resumeToken,
       playerNames,
     }));
 
@@ -86,6 +104,7 @@ function handleJoinRoom(ws: WebSocket, roomCode: string, playerName: string, roo
     if (otherPlayer?.ws && otherPlayer.ws.readyState === WebSocket.OPEN) {
       otherPlayer.ws.send(JSON.stringify({
         type: 'player_joined',
+        playerId,
         playerName: playerName.trim(),
       }));
     }
@@ -95,6 +114,9 @@ function handleJoinRoom(ws: WebSocket, roomCode: string, playerName: string, roo
       roomManager.startGame(room);
       roomManager.sendToAll(room, { type: 'game_started' });
       roomManager.broadcastGameState(room);
+      for (const participant of room.players) {
+        if (!participant.ws) roomManager.sendToAll(room, { type: 'player_connection', playerId: participant.id, connected: false });
+      }
     }
   } catch (err) {
     sendError(ws, err instanceof Error ? err.message : 'Failed to join room');
@@ -134,7 +156,7 @@ function handlePlayAgain(ws: WebSocket, roomManager: RoomManager): void {
     return;
   }
 
-  const { room } = info;
+  const { room, playerId } = info;
   if (!room.game) {
     sendError(ws, 'Game has not started');
     return;
@@ -146,6 +168,10 @@ function handlePlayAgain(ws: WebSocket, roomManager: RoomManager): void {
   }
 
   try {
+    room.rematchRequests.add(playerId);
+    room.lastActivity = Date.now();
+    roomManager.sendToAll(room, { type: 'rematch_status', playerIds: [...room.rematchRequests] });
+    if (room.rematchRequests.size < room.players.length) return;
     roomManager.resetGame(room);
     roomManager.sendToAll(room, { type: 'game_started' });
     roomManager.broadcastGameState(room);
