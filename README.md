@@ -96,7 +96,7 @@ npm test
 npm --prefix frontend run build
 ```
 
-The suite covers the shared engine and backend behavior. CI installs dependencies, runs the tests and builds the frontend; it does not deploy.
+The suite covers the shared engine and backend behavior, including WebSocket session resume. Its WebSocket client and TypeScript declarations are explicit root development dependencies, so the tests do not rely on packages installed outside the checkout. CI installs dependencies, runs the tests and builds the frontend; it does not deploy.
 
 ### Configuration
 
