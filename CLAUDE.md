@@ -8,7 +8,7 @@
 | Dev frontend | `cd frontend && npm run dev` |
 | Run tests | `npm test` (from root) |
 | Build frontend | `cd frontend && npm run build` |
-| Deploy to VPS | `./sync.sh` |
+| Self-host | `docker compose -f compose.selfhost.yml up --build -d` |
 
 ## Architecture
 
@@ -20,9 +20,8 @@ frontend/        Vite + React + Tailwind PWA (imports shared/ for scoring displa
 
 - **Backend**: Node.js, Fastify, @fastify/websocket, tsx (runs TS directly)
 - **Frontend**: React, Zustand, Tailwind, Pixelify Sans font
-- **Deploy**: Docker Compose on `deployment-host` (`/opt/app`); the app joins `application-network` as `piksi` for the existing `application-tunnel` Cloudflare Tunnel.
-- **DNS and TLS**: Cloudflare routes `piksi.quz.ma` through the `application-tunnel` tunnel to `http://piksi:3000`; its proxied CNAME points to `tunnel.example.com`.
-- **Game rules**: See PIXIES_OFFICIAL_LLM_GUIDE.md
+- **Self-hosting**: Use `compose.selfhost.yml` with your own HTTPS reverse proxy or tunnel and WebSocket forwarding. The maintainer may keep an ignored `sync.sh` and `docker-compose.yml` locally; never deploy automatically.
+- **Game rules**: Use the in-app **How to play** guide. Optional maintainer reference copies live in ignored `private/`; they are not distributed with the repository.
 
 ## Conventions
 
@@ -31,4 +30,4 @@ frontend/        Vite + React + Tailwind PWA (imports shared/ for scoring displa
 - WebSocket protocol defined in `shared/protocol.ts` (shared by server and client)
 - Frontend uses Zustand store at `frontend/src/store/game-store.ts`
 - Tests: Vitest, run from project root with `npm test`
-- Deployment via `sync.sh` — never auto-deploy
+- Maintainer infrastructure belongs in ignored `CLAUDE.local.md`, not public documentation.

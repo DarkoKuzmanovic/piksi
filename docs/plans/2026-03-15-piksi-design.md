@@ -11,7 +11,7 @@
 | Game engine | Shared TypeScript (server-authoritative) |
 | State (client) | Zustand |
 | 8-bit aesthetic | Pixelify Sans font, pixel art sprites, retro palette |
-| Deploy | Docker + Traefik on VPS (`deploy@example.invalid`) |
+| Deploy | Docker Compose with a user-configured HTTPS reverse proxy or tunnel |
 | Domain | `piksi.quz.ma` |
 
 ## Project Structure
@@ -35,9 +35,8 @@ piksi/
 │   ├── types.ts           CardType, MatchState, GamePhase
 │   ├── deck.ts            70-card manifest + helpers
 │   └── scoring.ts         Scoring logic (used by both server & client)
-├── docker-compose.yml     Traefik labels -> piksi.quz.ma
-├── Dockerfile
-└── sync.sh                rsync + docker deploy
+├── compose.selfhost.yml   Generic loopback-only container deployment
+└── Dockerfile             Multi-stage frontend + backend image
 ```
 
 ## Visual Design

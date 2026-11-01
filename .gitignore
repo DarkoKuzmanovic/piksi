@@ -43,3 +43,9 @@ Desktop.ini
 .superpowers/
 .claude/
 .omp/
+
+# Maintainer-only rules, deployment and infrastructure notes
+/private/
+/sync.sh
+/docker-compose.yml
+/CLAUDE.local.md

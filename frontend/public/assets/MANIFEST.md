@@ -4,8 +4,8 @@ Piksi uses original cozy 8-bit / 16-bit woodland pixel art. Card numbers map to 
 Runtime files were copied from the accepted portable sketch in `docs/design/assets/`.
 The accepted visual target is `docs/design/piksi-woodland.pen` with PNG exports in `docs/design/exports/`.
 
-Generated with **gpt-image-2 via the Codex CLI's built-in `image_gen` tool** (ChatGPT OAuth in
-`authenticated CLI session`; no `OPENAI_API_KEY` on this machine). One `codex exec` call per asset:
+Generated with **gpt-image-2 via the Codex CLI's built-in `image_gen` tool** using an
+authenticated local CLI session. One `codex exec` call per asset:
 
 ```sh
 cd /tmp/piksi-woodland-art

@@ -8,8 +8,6 @@
 [![Code license: MIT](https://img.shields.io/badge/code-MIT-green.svg)](LICENSE)
 
 > **Unofficial fan project.** Piksi is not affiliated with, endorsed by, or sponsored by the Pixies publisher or creators. Pixies and its original game materials belong to their respective rights holders. The MIT license applies to this project's code only, not to the commercial rulebook or other third-party content.
->
-> **Publication status:** GitHub metadata and CI are prepared locally; the CI badge becomes useful after publication. The repository still contains the publisher's rulebook PDF and derived rule documents, including in git history. These need a rights review and removal/history cleanup before any public push; the fan-project notice is not permission to redistribute them.
 
 ## Features
 
@@ -85,7 +83,7 @@ cd frontend
 VITE_WS_TARGET=ws://localhost:3101 npm run dev -- --host 127.0.0.1 --port 5174
 ```
 
-Open **http://127.0.0.1:5174** in two browser tabs or windows to play. These explicit ports avoid an existing service on port 3000. The server defaults to port 3000 when `PORT` is unset; the frontend's default WebSocket proxy target is `ws://localhost:3000`.
+Open **http://127.0.0.1:5174** in two browser tabs or windows to play. The examples use explicit ports; set `PORT` if the default backend port 3000 is in use, and set `VITE_WS_TARGET` to match it. The frontend's default WebSocket proxy target is `ws://localhost:3000`.
 
 ### Tests and production frontend build
 
@@ -120,8 +118,6 @@ It builds the frontend and backend into one Node container and exposes the app o
 
 There are no persistent volumes or database: rooms and matches live in server memory, so restarting the container ends them. Use one application instance unless you first implement shared room state and connection routing.
 
-`sync.sh`, the default `docker-compose.yml`, and deployment notes describe the maintainer's existing infrastructure; they are not portable self-hosting instructions and require privacy cleanup before publication.
-
 ## Project layout
 
 ```text
@@ -142,7 +138,7 @@ compose.selfhost.yml  Generic loopback-only local/self-hosted container
 - Game state, player names and resume sessions are held in server memory. Resume tokens are stored in the browser tab's `sessionStorage`; the server also emits normal HTTP access logs, which can contain network metadata and request URLs.
 - Google Fonts is contacted at runtime to load **Pixelify Sans** and **Press Start 2P**, which are licensed under the SIL Open Font License. Font requests disclose ordinary connection metadata to Google. Self-host the fonts if you need to avoid those requests.
 - Woodland artwork was generated specifically for this project using **gpt-image-2**. It does not use the publisher's original card illustrations. See [the asset guide](docs/asset-guide.md) and [asset manifest](frontend/public/assets/MANIFEST.md) for provenance.
-- `PIXIES_rulebook_EN_official.pdf` is publisher material, **not MIT-licensed**. The derived rule guides and deck manifest also require a rights review. Their current presence must not be treated as redistribution permission.
+- The publisher's rulebook and derived reference documents are not distributed in this repository. For official rules and game information, visit [Bombyx, the Pixies publisher](https://studiobombyx.com/). Piksi's in-app guide explains how to use this adaptation.
 
 ## License
 

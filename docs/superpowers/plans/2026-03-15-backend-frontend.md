@@ -110,4 +110,4 @@ Mobile layout: own grid bottom (large), opponent grid top (small), display cards
 - Create: `sync.sh`
 - Create: `CLAUDE.md`
 
-Multi-stage Docker build: build frontend, then run backend serving static files. Traefik labels for piksi.quz.ma. Deploy script matching reference-application pattern.
+Multi-stage Docker build: build frontend, then run backend serving static files. Use compose.selfhost.yml with your own HTTPS proxy or tunnel and forward WebSocket upgrades.
