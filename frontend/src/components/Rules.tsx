@@ -1,6 +1,12 @@
 import { useEffect, useRef } from "react";
 import { trapDialogFocus } from "./dialog-focus";
 import { SymbolIcon } from "./SymbolIcon";
+import { Card } from "./Card";
+import { DECK } from "@shared/deck";
+
+const suitColors = ["blue", "green", "yellow", "red"] as const;
+const suitKeys = [...suitColors, "multi"] as const;
+const blueSpecialCard = DECK.find((card) => card.cardTypeId === "B6")!;
 
 export function Rules({ onClose }: { onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -37,10 +43,12 @@ export function Rules({ onClose }: { onClose: () => void }) {
         >
           ×
         </button>
-        <p className="eyebrow">A little field guide</p>
-        <h2 id="rules-title">How to play</h2>
+        <header className="panel-heading">
+          <p className="eyebrow">A little field guide</p>
+          <h2 id="rules-title">How to play</h2>
+        </header>
         <div className="rules-copy">
-          <h3>Gather your pixies</h3>
+          <h3>Gather your woodland friends</h3>
           <p>
             Over three rounds, take turns choosing cards from the shared
             display. Each card belongs in the matching numbered space of your 3
@@ -66,6 +74,23 @@ export function Rules({ onClose }: { onClose: () => void }) {
             <li><SymbolIcon kind="cross" /><span><strong>Cross</strong> · −1 point per cross</span></li>
             <li><span className="legend-special"><SymbolIcon kind="special" /></span><span><strong>Special spiral</strong> · +1 per face-up card of its color, including itself</span></li>
           </ul>
+          <h3>Card colors &amp; pattern bands</h3>
+          <div className="suit-key">
+            {suitKeys.map((suit) => (
+              <div key={suit}>
+                <span className="suit-band" aria-hidden="true">
+                  {(suit === "multi" ? suitColors : [suit]).map((color) => (
+                    <span key={color} className={`suit-pattern pattern-${color}`} />
+                  ))}
+                </span>
+                {suit === "multi" ? "ALL" : suit.toUpperCase()}
+              </div>
+            ))}
+          </div>
+          <div className="special-example">
+            <Card card={blueSpecialCard} />
+            <p>Special spiral matches the card’s printed color below it (e.g. BLUE special spiral counts every face-up BLUE &amp; ALL card).</p>
+          </div>
           <h3>Grow a color zone</h3>
           <p>
             Your largest orthogonally connected group of at least two matching

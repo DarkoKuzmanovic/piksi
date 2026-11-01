@@ -21,16 +21,18 @@ export function GameOver() {
         : "It's a tie!";
   return (
     <main className="end-shell">
-      <section className="glass-panel end-panel">
-        <img src="/assets/brand/logo.webp" alt="" className="end-emblem" />
-        <p className="eyebrow">The final chapter</p>
-        <h1>{title}</h1>
+      <img src="/assets/brand/logo.webp" alt="" className="end-emblem" />
+      <section className="wood-panel end-panel">
+        <header className="panel-heading">
+          <p className="eyebrow">The final chapter</p>
+          <h1>{title}</h1>
+        </header>
         <p className="muted">
           Three rounds of woodland magic, beautifully played.
         </p>
         <div className="final-table">
           <div className="final-row final-head">
-            <span></span>
+            <span>Player</span>
             <span>R1</span>
             <span>R2</span>
             <span>R3</span>

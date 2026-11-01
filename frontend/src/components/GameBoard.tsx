@@ -58,11 +58,11 @@ export function GameBoard() {
     <main className="game-shell">
       <header className="game-header">
         <span className="mini-brand">PIKSI</span>
-        <span>
-          Round {gameState.roundNumber} / 3{" "}
+        <span className="game-metadata">
+          Round <span className="numeral">{gameState.roundNumber}</span> / <span className="numeral">3</span>{" "}
           <span className="header-separator">·</span> Turn{" "}
-          {gameState.turnNumber} <span className="header-separator">·</span>{" "}
-          Pick {gameState.pickIndex + 1} / 4
+          <span className="numeral">{gameState.turnNumber}</span> <span className="header-separator">·</span>{" "}
+          Pick <span className="numeral">{gameState.pickIndex + 1}</span> / <span className="numeral">4</span>
         </span>
         <span className="header-spacer" />
       </header>
@@ -89,22 +89,22 @@ export function GameBoard() {
               <span className="eyebrow">Their woodland</span>
               <h2>{opponentName}</h2>
             </div>
+            <div className="preview">
+              Round preview{" "}
+              <strong><span className="numeral">{scoreRound(opponent, gameState.roundNumber)}</span> <span className="points-label">pts</span></strong>
+            </div>
             <div className="score-pill">
               <strong>{total(opponentId)}</strong>
               <span>total</span>
             </div>
           </div>
           <PlayerGrid board={opponent} isOwn={false} />
-          <div className="preview">
-            Round preview{" "}
-            <strong>{scoreRound(opponent, gameState.roundNumber)} pts</strong>
-          </div>
         </section>
         <section className="display-panel" aria-label="Shared display">
           <div className="display-heading">
             <div>
               <span className="eyebrow">The gathering</span>
-              <h2>Choose a pixie</h2>
+              <h2>Choose an animal</h2>
             </div>
             <span className="display-hint">
               {!myTurn
@@ -140,6 +140,10 @@ export function GameBoard() {
                 {myName} <span className="you-label">· you</span>
               </h2>
             </div>
+            <div className="preview">
+              Round preview{" "}
+              <strong><span className="numeral">{scoreRound(own, gameState.roundNumber)}</span> <span className="points-label">pts</span></strong>
+            </div>
             <div className="score-pill">
               <strong>{total(playerId)}</strong>
               <span>total</span>
@@ -151,10 +155,6 @@ export function GameBoard() {
             highlightSpaces={targets}
             onSpaceClick={chooseSpace}
           />
-          <div className="preview">
-            Round preview{" "}
-            <strong>{scoreRound(own, gameState.roundNumber)} pts</strong>
-          </div>
         </section>
       </div>
       {phase === "choose_keep" &&

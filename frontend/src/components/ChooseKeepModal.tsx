@@ -28,8 +28,10 @@ export function ChooseKeepModal({
         aria-describedby="keep-description"
         onKeyDown={trapDialogFocus}
       >
-        <p className="eyebrow">A matching pixie</p>
-        <h2 id="keep-title">Choose a card to keep</h2>
+        <header className="panel-heading">
+          <p className="eyebrow">A matching animal</p>
+          <h2 id="keep-title">Choose a card to keep</h2>
+        </header>
         <p id="keep-description" className="muted">
           Your space will be validated. The other card goes face down
           underneath.

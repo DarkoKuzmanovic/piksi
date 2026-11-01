@@ -44,11 +44,13 @@ export function Lobby() {
         <h1 className="wordmark">PIKSI</h1>
         <p>A little magic for two</p>
       </div>
-      <section className="lobby-panel glass-panel">
+      <section className="lobby-panel wood-panel">
         {waiting ? (
           <>
-            <p className="eyebrow">Your invitation is ready</p>
-            <h2>Waiting for a friend</h2>
+            <header className="panel-heading">
+              <p className="eyebrow">Your invitation is ready</p>
+              <h2>Waiting for a friend</h2>
+            </header>
             <p className="muted">
               Share your invitation link or room code. The game begins when your
               friend joins.
@@ -66,8 +68,10 @@ export function Lobby() {
           </>
         ) : (
           <>
-            <p className="eyebrow">Welcome to the woodland</p>
-            <h2>Gather your pixies</h2>
+            <header className="panel-heading">
+              <p className="eyebrow">Welcome to the woodland</p>
+              <h2>Gather your woodland friends</h2>
+            </header>
             <p className="muted">
               Create a game or join a friend for a little friendly magic.
             </p>

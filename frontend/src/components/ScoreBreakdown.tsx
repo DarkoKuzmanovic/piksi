@@ -35,7 +35,7 @@ export function ScoreBreakdown() {
     },
     {
       label: "Largest color zone",
-      detail: `Connected cards × ${round + 1}`,
+      detail: <>Connected cards × <span className="numeral">{round + 1}</span></>,
       own: scoreLargestZone(own, round),
       opponent: scoreLargestZone(opponent, round),
     },
@@ -59,12 +59,14 @@ export function ScoreBreakdown() {
         aria-labelledby="score-title"
         onKeyDown={trapDialogFocus}
       >
-        <p className="eyebrow">The magic adds up</p>
-        <h2 id="score-title">Round {round} complete</h2>
+        <header className="panel-heading">
+          <p className="eyebrow">The magic adds up</p>
+          <h2 id="score-title">Round <span className="numeral">{round}</span> complete</h2>
+        </header>
         <p className="muted">Here's how your woodlands scored.</p>
         <div className="score-table">
           <div className="score-row score-head">
-            <span></span>
+            <span>Category</span>
             <strong>{playerNames[playerId] ?? "You"}</strong>
             <strong>{playerNames[opponentId] ?? "Opponent"}</strong>
           </div>

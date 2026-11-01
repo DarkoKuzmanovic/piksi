@@ -1,25 +1,29 @@
 # Piksi asset guide
 
-Piksi's **Twilight Arcane, modernized** identity combines a low-contrast twilight woodland with layered violet glass, soft glows and storybook pixies. UI typography is Outfit; Pixelify Sans is reserved for the PIKSI wordmark and large card numerals. Color tokens live in `frontend/src/index.css`: the four suits are blue `#6ea8ff`, green `#5ce6b0`, yellow `#ffcf5c`, and rose `#ff7b9c`; selectable and validated states use lavender `#e6d8ff`, never the rose suit.
+Piksi uses a cozy 8-bit / 16-bit woodland identity: original animal sprites, forest scenery, chunky wooden frames, cream parchment wells and hard pixel shadows. The accepted editable sketch is `docs/design/piksi-woodland.pen`; `docs/design/exports/` contains the mobile, desktop and component visual targets. See `docs/design/README.md` for the board index and `docs/superpowers/specs/2026-11-01-woodland-8bit-design.md` for the contract.
 
 ## Runtime artwork
 
-All paths are relative to `frontend/public/`. See `assets/MANIFEST.md` for artwork production details.
+All paths below are relative to `frontend/public/`. Runtime art is copied from `docs/design/assets/`, whose nested `assets/` and `icons/` directories preserve the generation output. `frontend/public/assets/MANIFEST.md` contains the original prompts, processing steps, file sizes and limitations merged from `/tmp/piksi-woodland-art/MANIFEST.md`. Full-resolution sources and generation scripts remain in `/tmp/piksi-woodland-art/`; they are not runtime dependencies.
 
 | Asset | Dimensions | Purpose |
 | --- | --- | --- |
-| `assets/bg/twilight-forest.webp` | 2560 × 1440 | Dark, low-contrast landscape app background |
-| `assets/bg/twilight-forest-portrait.webp` | 1080 × 1920 | Portrait background on small screens |
-| `assets/brand/logo.webp` | 1024 × 1024 | Transparent emblem on lobby and final results |
-| `assets/cards/back.webp` | 720 × 1008 | Portrait 5:7 face-down card |
-| `assets/cards/pixie-1.webp` … `pixie-9.webp` | 768 × 768 | Transparent, centered illustrations for each card number |
-| `icons/icon-192.png` | 192 × 192 | Standard web app icon |
-| `icons/icon-512.png` | 512 × 512 | Standard web app icon |
-| `icons/icon-maskable-512.png` | 512 × 512 | Maskable web app icon |
+| `assets/bg/woodland.webp` | 2560 × 1440 | Landscape woodland scenery |
+| `assets/bg/woodland-portrait.webp` | 1080 × 1920 | Phone woodland scenery |
+| `assets/brand/logo.webp` | 1024 × 1024 transparent | Fox-and-acorn emblem |
+| `assets/cards/back.webp` | 720 × 1008 | Non-identifying 5:7 card back |
+| `assets/cards/animal-1.webp` … `animal-9.webp` | 768 × 768 transparent | Number-specific sprites |
+| `icons/icon-192.png` | 192 × 192 | Standard app icon |
+| `icons/icon-512.png` | 512 × 512 | Standard app icon |
+| `icons/icon-maskable-512.png` | 512 × 512 | Maskable app icon |
 | `icons/apple-touch-icon.png` | 180 × 180 | Apple home-screen icon |
 
-Card illustrations are decorative: the number, suit name/color, and symbol counts remain visible independently of the artwork. Multicolor cards count as all four suits; a colored special spiral represents one point per face-up card of that color. The card back must conceal the underlying card identity.
+Animal identity follows number, never suit: **1 field mouse, 2 frog, 3 hedgehog, 4 squirrel, 5 rabbit, 6 badger, 7 red fox, 8 owl, 9 stag**. All supplied sprites have binary alpha and a shared logical pixel grid. Art uses `image-rendering: pixelated`; animal images use `contain`. No old card sprites or old scenic backgrounds remain in runtime assets.
 
-## UI and accessibility
+## Visual system and accessibility
 
-Use the CSS tokens rather than new color literals in components. Panels and buttons are styled in CSS; the app supports keyboard focus and reduced motion. The forest is a background, not a source of essential information. Icons and images used decoratively have empty alt text, while each playable card has a descriptive accessible label.
+`frontend/src/index.css` is the single token and component stylesheet. Forest `#1C2C24`, wood `#D7A66B` / `#A16B3B` / `#51341F`, parchment `#F7E8C6`, ink `#281C15` and honey `#D59B55` define the chrome. Suit colors remain BLUE `#385C83`, GREEN `#5F7945`, YELLOW `#E5BA55`, RED `#B9684B`, with distinct pattern bands and printed suit words. Multicolor uses four hard segments. Ivory `#FFFDF4` selection brackets/checks and purple `#693E91` keyboard focus remain independent of suit.
+
+Pixelify Sans is the prose/UI face. Press Start 2P is used only for numerals/codes, at weight 400 and 16/24/32 px, including card/slot numbers, counts, scores and room codes. Both are loaded through Google Fonts in the stylesheet. Native 1× tests live in `docs/design/exports/Test-Numerals-1x-*.png`; the numeral face separates 5/S, 8/B, 2/Z and 6/G.
+
+Card art and branding are decorative (`alt=""`); card accessible descriptions retain number, suit and scoring information. Backs never reveal hidden identities. Scoring still comes from the shared game engine; animals introduce no rules. Controls retain visible focus, modal focus traps, 44 px minimum targets and reduced-motion behavior. Page/dialog content scrolls rather than shrinking phone numerals or clipping actions. No continuous particles, glow or blur layer is used.

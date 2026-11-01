@@ -1,6 +1,8 @@
 import type { CardType, SpaceNumber } from "../store/game-store";
 import { SymbolIcon } from "./SymbolIcon";
 
+const suitColors = ["blue", "green", "yellow", "red"] as const;
+
 interface CardProps {
   card: CardType | null;
   facedown?: boolean;
@@ -24,10 +26,15 @@ export function Card({
   const content =
     card && !facedown ? (
       <>
+        <span className="suit-band" aria-hidden="true">
+          {(card.multicolor ? suitColors : card.colors).map((color) => (
+            <span key={color} className={`suit-pattern pattern-${color}`} />
+          ))}
+        </span>
         <span className="card-number">{card.number}</span>
         <img
           className="card-art"
-          src={`/assets/cards/pixie-${card.number}.webp`}
+          src={`/assets/cards/animal-${card.number}.webp`}
           alt=""
           draggable={false}
         />
